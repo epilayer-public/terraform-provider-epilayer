@@ -14,6 +14,9 @@ import (
 type KubernetesClusterResourceModel struct {
 	CreatedAt types.String `tfsdk:"created_at"`
 
+	// DeployCsi Whether the CSI driver is deployed to this cluster.
+	DeployCsi types.Bool `tfsdk:"deploy_csi"`
+
 	// Id The unique ID of the Kubernetes cluster.
 	Id types.String `tfsdk:"id"`
 
@@ -34,6 +37,7 @@ type KubernetesClusterResourceModel struct {
 
 func (data *KubernetesClusterResourceModel) PopulateFromClientResponse(ctx context.Context, cluster *epilayer.KubernetesCluster) (diag diag.Diagnostics) {
 	data.CreatedAt = types.StringValue(cluster.CreatedAt.Format(time.RFC3339))
+	data.DeployCsi = types.BoolValue(cluster.DeployCsi)
 	data.Id = types.StringValue(cluster.Id)
 	data.Name = types.StringValue(cluster.Name)
 	data.Status = types.StringValue(string(cluster.Status))
@@ -58,6 +62,9 @@ type KubernetesClusterDataSourceModel struct {
 	// Network The network ID for the cluster.
 	Network types.String `tfsdk:"network"`
 
+	// DeployCsi Whether the CSI driver is deployed to this cluster.
+	DeployCsi types.Bool `tfsdk:"deploy_csi"`
+
 	// Status The Kubernetes cluster status.
 	Status types.String `tfsdk:"status"`
 
@@ -76,6 +83,7 @@ type KubernetesClusterDataSourceModel struct {
 
 func (data *KubernetesClusterDataSourceModel) PopulateFromClientResponse(ctx context.Context, cluster *epilayer.KubernetesCluster) (diag diag.Diagnostics) {
 	data.CreatedAt = types.StringValue(cluster.CreatedAt.Format(time.RFC3339))
+	data.DeployCsi = types.BoolValue(cluster.DeployCsi)
 	data.Id = types.StringValue(cluster.Id)
 	data.Name = types.StringValue(cluster.Name)
 	data.Status = types.StringValue(string(cluster.Status))
