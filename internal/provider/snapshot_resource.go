@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sagadata-public/sagadata-go"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/defaultplanmodifier"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/resourceenhancer"
+	"github.com/epilayer-public/epilayer-go"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/defaultplanmodifier"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/resourceenhancer"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -151,7 +151,7 @@ func (r *SnapshotResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	var snapshotResponse *sagadata.SingleSnapshotResponse
+	var snapshotResponse *epilayer.SingleSnapshotResponse
 
 	if !data.SourceInstanceId.IsNull() {
 		if data.Region.ValueString() != "" {
@@ -162,14 +162,14 @@ func (r *SnapshotResource) Create(ctx context.Context, req resource.CreateReques
 			return
 
 		}
-		body := sagadata.CreateInstanceSnapshotJSONRequestBody{}
+		body := epilayer.CreateInstanceSnapshotJSONRequestBody{}
 
 		body.Name = data.Name.ValueString()
 
 		instanceId := data.SourceInstanceId.ValueString()
 
 		if !data.ReplicatedRegion.IsNull() {
-			body.ReplicatedRegion = pointer(sagadata.Region(data.ReplicatedRegion.ValueString()))
+			body.ReplicatedRegion = pointer(epilayer.Region(data.ReplicatedRegion.ValueString()))
 		}
 
 		response, err := r.client.CreateInstanceSnapshotWithResponse(ctx, instanceId, body)
@@ -204,11 +204,11 @@ func (r *SnapshotResource) Create(ctx context.Context, req resource.CreateReques
 			return
 		}
 
-		body := sagadata.CloneSnapshotJSONRequestBody{}
+		body := epilayer.CloneSnapshotJSONRequestBody{}
 
 		body.Name = data.Name.ValueString()
 
-		body.Region = sagadata.Region(data.Region.ValueString())
+		body.Region = epilayer.Region(data.Region.ValueString())
 
 		snapshotId := data.SourceSnapshotId.ValueString()
 
@@ -270,7 +270,7 @@ func (r *SnapshotResource) Create(ctx context.Context, req resource.CreateReques
 		}
 
 		status := snapshotResponse.Snapshot.Status
-		if status == sagadata.SnapshotStatusCreated || status == sagadata.SnapshotStatusError {
+		if status == epilayer.SnapshotStatusCreated || status == epilayer.SnapshotStatusError {
 			resp.Diagnostics.Append(data.PopulateFromClientResponse(ctx, &snapshotResponse.Snapshot)...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -282,7 +282,7 @@ func (r *SnapshotResource) Create(ctx context.Context, req resource.CreateReques
 				return
 			}
 
-			if status == sagadata.SnapshotStatusError {
+			if status == epilayer.SnapshotStatusError {
 				resp.Diagnostics.AddError("Provisioning Error", generateErrorMessage("polling snapshot", ErrResourceInErrorState))
 			}
 			return
@@ -351,7 +351,7 @@ func (r *SnapshotResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 	defer cancel()
 
-	body := sagadata.UpdateSnapshotJSONRequestBody{}
+	body := epilayer.UpdateSnapshotJSONRequestBody{}
 
 	body.Name = pointer(data.Name.ValueString())
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sagadata-public/sagadata-go"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/resourceenhancer"
+	"github.com/epilayer-public/epilayer-go"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/resourceenhancer"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -55,7 +55,7 @@ func (r *InstanceStatusResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "The target instance status.",
 				Required:            true,
 				Validators: []validator.String{
-					stringvalidator.OneOf(string(sagadata.InstanceStatusActive), string(sagadata.InstanceStatusStopped)),
+					stringvalidator.OneOf(string(epilayer.InstanceStatusActive), string(epilayer.InstanceStatusStopped)),
 				},
 			}),
 
@@ -82,9 +82,9 @@ func (r *InstanceStatusResource) Create(ctx context.Context, req resource.Create
 	defer cancel()
 
 	instanceId := data.InstanceId.ValueString()
-	targetStatus := sagadata.InstanceStatus(data.Status.ValueString())
+	targetStatus := epilayer.InstanceStatus(data.Status.ValueString())
 
-	var instanceAction sagadata.InstanceAction
+	var instanceAction epilayer.InstanceAction
 
 	{
 		response, err := r.client.GetInstanceWithResponse(ctx, instanceId)
@@ -118,16 +118,16 @@ func (r *InstanceStatusResource) Create(ctx context.Context, req resource.Create
 			return
 		}
 
-		if targetStatus == sagadata.InstanceStatusActive &&
-			instanceResponse.Instance.Status == sagadata.InstanceStatusStopped {
+		if targetStatus == epilayer.InstanceStatusActive &&
+			instanceResponse.Instance.Status == epilayer.InstanceStatusStopped {
 
-			instanceAction = sagadata.InstanceActionStart
-		} else if targetStatus == sagadata.InstanceStatusStopped &&
-			(instanceResponse.Instance.Status == sagadata.InstanceStatusActive ||
-				instanceResponse.Instance.Status == sagadata.InstanceStatusStarting ||
-				instanceResponse.Instance.Status == sagadata.InstanceStatusError) {
+			instanceAction = epilayer.InstanceActionStart
+		} else if targetStatus == epilayer.InstanceStatusStopped &&
+			(instanceResponse.Instance.Status == epilayer.InstanceStatusActive ||
+				instanceResponse.Instance.Status == epilayer.InstanceStatusStarting ||
+				instanceResponse.Instance.Status == epilayer.InstanceStatusError) {
 
-			instanceAction = sagadata.InstanceActionStop
+			instanceAction = epilayer.InstanceActionStop
 		} else {
 			resp.Diagnostics.AddError("Cannot transition instance status",
 				fmt.Sprintf("The instance resource with id %q cannot be transitioned from %q status to %q status. If the current status is transient (ending in 'ing' e.g. stopping) waiting a bit is usually enough.",
@@ -136,7 +136,7 @@ func (r *InstanceStatusResource) Create(ctx context.Context, req resource.Create
 		}
 	}
 
-	body := sagadata.PerformInstanceActionJSONRequestBody{}
+	body := epilayer.PerformInstanceActionJSONRequestBody{}
 	body.Action = instanceAction
 
 	response, err := r.client.PerformInstanceActionWithResponse(ctx, instanceId, body)
@@ -260,9 +260,9 @@ func (r *InstanceStatusResource) Update(ctx context.Context, req resource.Update
 	defer cancel()
 
 	instanceId := data.InstanceId.ValueString()
-	targetStatus := sagadata.InstanceStatus(data.Status.ValueString())
+	targetStatus := epilayer.InstanceStatus(data.Status.ValueString())
 
-	var instanceAction sagadata.InstanceAction
+	var instanceAction epilayer.InstanceAction
 
 	{
 		response, err := r.client.GetInstanceWithResponse(ctx, instanceId)
@@ -296,16 +296,16 @@ func (r *InstanceStatusResource) Update(ctx context.Context, req resource.Update
 			return
 		}
 
-		if targetStatus == sagadata.InstanceStatusActive &&
-			instanceResponse.Instance.Status == sagadata.InstanceStatusStopped {
+		if targetStatus == epilayer.InstanceStatusActive &&
+			instanceResponse.Instance.Status == epilayer.InstanceStatusStopped {
 
-			instanceAction = sagadata.InstanceActionStart
-		} else if targetStatus == sagadata.InstanceStatusStopped &&
-			(instanceResponse.Instance.Status == sagadata.InstanceStatusActive ||
-				instanceResponse.Instance.Status == sagadata.InstanceStatusStarting ||
-				instanceResponse.Instance.Status == sagadata.InstanceStatusError) {
+			instanceAction = epilayer.InstanceActionStart
+		} else if targetStatus == epilayer.InstanceStatusStopped &&
+			(instanceResponse.Instance.Status == epilayer.InstanceStatusActive ||
+				instanceResponse.Instance.Status == epilayer.InstanceStatusStarting ||
+				instanceResponse.Instance.Status == epilayer.InstanceStatusError) {
 
-			instanceAction = sagadata.InstanceActionStop
+			instanceAction = epilayer.InstanceActionStop
 		} else {
 			resp.Diagnostics.AddError("Cannot transition instance status",
 				fmt.Sprintf("The instance resource with id %q cannot be transitioned from %q status to %q status. If the current status is transient (ending in 'ing' e.g. stopping) waiting a bit is usually enough.",
@@ -314,7 +314,7 @@ func (r *InstanceStatusResource) Update(ctx context.Context, req resource.Update
 		}
 	}
 
-	body := sagadata.PerformInstanceActionJSONRequestBody{}
+	body := epilayer.PerformInstanceActionJSONRequestBody{}
 	body.Action = instanceAction
 
 	response, err := r.client.PerformInstanceActionWithResponse(ctx, instanceId, body)

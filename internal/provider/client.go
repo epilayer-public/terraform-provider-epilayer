@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/sagadata-public/sagadata-go"
+	"github.com/epilayer-public/epilayer-go"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -27,7 +27,7 @@ func (l ClientLogger) Printf(format string, a ...interface{}) {
 }
 
 type Client struct {
-	*sagadata.ClientWithResponses
+	*epilayer.ClientWithResponses
 
 	PollingInterval time.Duration
 }
@@ -42,7 +42,7 @@ func (c *Client) PollingWait(ctx context.Context) error {
 }
 
 type ClientConfig struct {
-	sagadata.ClientConfig
+	epilayer.ClientConfig
 	PollingInterval time.Duration
 }
 
@@ -52,11 +52,11 @@ func NewClient(ctx context.Context, config ClientConfig) (*Client, error) {
 	retryClient.Logger = ClientLogger{ctx: ctx}
 	retryClient.CheckRetry = RetryPolicy
 
-	opts := []sagadata.ClientOption{
-		sagadata.WithHTTPClient(retryClient.StandardClient()),
+	opts := []epilayer.ClientOption{
+		epilayer.WithHTTPClient(retryClient.StandardClient()),
 	}
 
-	client, err := sagadata.NewSagaDataClient(config.ClientConfig, opts...)
+	client, err := epilayer.NewEpiLayerClient(config.ClientConfig, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 
-	"github.com/sagadata-public/sagadata-go"
+	"github.com/epilayer-public/epilayer-go"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -22,7 +22,7 @@ type InstanceStatusResourceModel struct {
 	Timeouts timeouts.Value `tfsdk:"timeouts"`
 }
 
-func (data *InstanceStatusResourceModel) PopulateFromClientResponse(ctx context.Context, instance *sagadata.Instance) (diag diag.Diagnostics) {
+func (data *InstanceStatusResourceModel) PopulateFromClientResponse(ctx context.Context, instance *epilayer.Instance) (diag diag.Diagnostics) {
 	data.InstanceId = types.StringValue(instance.Id)
 	data.Status = types.StringValue(string(instance.Status))
 

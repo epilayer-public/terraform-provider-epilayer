@@ -3,8 +3,8 @@ package provider
 import (
 	"context"
 
-	"github.com/sagadata-public/sagadata-go"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/resourceenhancer"
+	"github.com/epilayer-public/epilayer-go"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/resourceenhancer"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -98,7 +98,7 @@ func (r *KubernetesClusterResource) Create(ctx context.Context, req resource.Cre
 	}
 	defer cancel()
 
-	body := sagadata.CreateKubernetesClusterJSONRequestBody{}
+	body := epilayer.CreateKubernetesClusterJSONRequestBody{}
 
 	body.Name = data.Name.ValueString()
 
@@ -162,7 +162,7 @@ func (r *KubernetesClusterResource) Create(ctx context.Context, req resource.Cre
 		}
 
 		status := clusterResponse.Cluster.Status
-		if status == sagadata.KubernetesClusterStatusActive || status == sagadata.KubernetesClusterStatusError {
+		if status == epilayer.KubernetesClusterStatusActive || status == epilayer.KubernetesClusterStatusError {
 			resp.Diagnostics.Append(data.PopulateFromClientResponse(ctx, &clusterResponse.Cluster)...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -173,7 +173,7 @@ func (r *KubernetesClusterResource) Create(ctx context.Context, req resource.Cre
 				return
 			}
 
-			if status == sagadata.KubernetesClusterStatusError {
+			if status == epilayer.KubernetesClusterStatusError {
 				resp.Diagnostics.AddError("Provisioning Error", generateErrorMessage("polling kubernetes cluster", ErrResourceInErrorState))
 			}
 			return
@@ -239,7 +239,7 @@ func (r *KubernetesClusterResource) Update(ctx context.Context, req resource.Upd
 	}
 	defer cancel()
 
-	body := sagadata.UpdateKubernetesClusterJSONRequestBody{}
+	body := epilayer.UpdateKubernetesClusterJSONRequestBody{}
 
 	if !data.Network.IsNull() && !data.Network.IsUnknown() {
 		body.Network = data.Network.ValueStringPointer()

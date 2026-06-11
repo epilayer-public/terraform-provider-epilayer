@@ -9,7 +9,7 @@ import (
 
 func testAccFilesystemResourceConfig(name string, size int) string {
 	return fmt.Sprintf(`
-resource "sagadata_filesystem" "test" {
+resource "epilayer_filesystem" "test" {
   name = %[1]q
   size = %[2]q
 }
@@ -25,14 +25,14 @@ func TestAccFilesystemResource(t *testing.T) {
 			{
 				Config: providerConfig + testAccFilesystemResourceConfig("one", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// resource.TestCheckResourceAttr("sagadata_filesystem.test", "id", "ssh-key-id"),
-					resource.TestCheckResourceAttr("sagadata_filesystem.test", "name", "one"),
-					resource.TestCheckResourceAttr("sagadata_filesystem.test", "size", "1"),
+					// resource.TestCheckResourceAttr("epilayer_filesystem.test", "id", "ssh-key-id"),
+					resource.TestCheckResourceAttr("epilayer_filesystem.test", "name", "one"),
+					resource.TestCheckResourceAttr("epilayer_filesystem.test", "size", "1"),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "sagadata_filesystem.test",
+				ResourceName:      "epilayer_filesystem.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -40,7 +40,7 @@ func TestAccFilesystemResource(t *testing.T) {
 			{
 				Config: providerConfig + testAccFilesystemResourceConfig("two", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("sagadata_filesystem.test", "name", "two"),
+					resource.TestCheckResourceAttr("epilayer_filesystem.test", "name", "two"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase

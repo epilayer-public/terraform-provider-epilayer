@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 
-	"github.com/sagadata-public/sagadata-go"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/defaultplanmodifier"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/resourceenhancer"
+	"github.com/epilayer-public/epilayer-go"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/defaultplanmodifier"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/resourceenhancer"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -92,7 +92,7 @@ func (r *PrivateNetworkResource) Schema(ctx context.Context, req resource.Schema
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf(sliceStringify(sagadata.AllRegions)...),
+					stringvalidator.OneOf(sliceStringify(epilayer.AllRegions)...),
 				},
 			}),
 			"status": resourceenhancer.Attribute(ctx, schema.StringAttribute{
@@ -137,10 +137,10 @@ func (r *PrivateNetworkResource) Create(ctx context.Context, req resource.Create
 	}
 	defer cancel()
 
-	body := sagadata.CreatePrivateNetworkJSONRequestBody{}
+	body := epilayer.CreatePrivateNetworkJSONRequestBody{}
 
 	body.Name = data.Name.ValueString()
-	body.Region = sagadata.Region(data.Region.ValueString())
+	body.Region = epilayer.Region(data.Region.ValueString())
 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		body.Description = pointer(data.Description.ValueString())
@@ -210,7 +210,7 @@ func (r *PrivateNetworkResource) Create(ctx context.Context, req resource.Create
 		}
 
 		status := networkResponse.PrivateNetwork.Status
-		if status == sagadata.PrivateNetworkStatusCreated || status == sagadata.PrivateNetworkStatusError {
+		if status == epilayer.PrivateNetworkStatusCreated || status == epilayer.PrivateNetworkStatusError {
 			resp.Diagnostics.Append(data.PopulateFromClientResponse(ctx, &networkResponse.PrivateNetwork)...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -221,7 +221,7 @@ func (r *PrivateNetworkResource) Create(ctx context.Context, req resource.Create
 				return
 			}
 
-			if status == sagadata.PrivateNetworkStatusError {
+			if status == epilayer.PrivateNetworkStatusError {
 				resp.Diagnostics.AddError("Provisioning Error", generateErrorMessage("polling private network", ErrResourceInErrorState))
 			}
 			return
@@ -287,7 +287,7 @@ func (r *PrivateNetworkResource) Update(ctx context.Context, req resource.Update
 	}
 	defer cancel()
 
-	body := sagadata.UpdatePrivateNetworkJSONRequestBody{}
+	body := epilayer.UpdatePrivateNetworkJSONRequestBody{}
 
 	body.Name = pointer(data.Name.ValueString())
 	body.Description = pointer(data.Description.ValueString())

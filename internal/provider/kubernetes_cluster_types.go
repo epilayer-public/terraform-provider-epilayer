@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/sagadata-public/sagadata-go"
+	"github.com/epilayer-public/epilayer-go"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 	resourcetimeouts "github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -32,7 +32,7 @@ type KubernetesClusterResourceModel struct {
 	Timeouts resourcetimeouts.Value `tfsdk:"timeouts"`
 }
 
-func (data *KubernetesClusterResourceModel) PopulateFromClientResponse(ctx context.Context, cluster *sagadata.KubernetesCluster) (diag diag.Diagnostics) {
+func (data *KubernetesClusterResourceModel) PopulateFromClientResponse(ctx context.Context, cluster *epilayer.KubernetesCluster) (diag diag.Diagnostics) {
 	data.CreatedAt = types.StringValue(cluster.CreatedAt.Format(time.RFC3339))
 	data.Id = types.StringValue(cluster.Id)
 	data.Name = types.StringValue(cluster.Name)
@@ -74,7 +74,7 @@ type KubernetesClusterDataSourceModel struct {
 	Timeouts timeouts.Value `tfsdk:"timeouts"`
 }
 
-func (data *KubernetesClusterDataSourceModel) PopulateFromClientResponse(ctx context.Context, cluster *sagadata.KubernetesCluster) (diag diag.Diagnostics) {
+func (data *KubernetesClusterDataSourceModel) PopulateFromClientResponse(ctx context.Context, cluster *epilayer.KubernetesCluster) (diag diag.Diagnostics) {
 	data.CreatedAt = types.StringValue(cluster.CreatedAt.Format(time.RFC3339))
 	data.Id = types.StringValue(cluster.Id)
 	data.Name = types.StringValue(cluster.Name)
@@ -90,7 +90,7 @@ func (data *KubernetesClusterDataSourceModel) PopulateFromClientResponse(ctx con
 	return
 }
 
-func (data *KubernetesClusterDataSourceModel) PopulateCredentialsFromClientResponse(ctx context.Context, creds *sagadata.K8sClusterCredentialsResponse) (diag diag.Diagnostics) {
+func (data *KubernetesClusterDataSourceModel) PopulateCredentialsFromClientResponse(ctx context.Context, creds *epilayer.K8sClusterCredentialsResponse) (diag diag.Diagnostics) {
 	data.Kubeconfig = types.StringValue(creds.Kubeconfig)
 
 	if creds.JoinCommand != nil {
