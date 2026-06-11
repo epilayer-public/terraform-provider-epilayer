@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/provider"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/provider"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -35,7 +35,7 @@ func main() {
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
-		Address: "registry.terraform.io/sagadata-public/sagadata",
+		Address: "registry.terraform.io/epilayer-public/epilayer",
 		Debug:   debug,
 	}
 

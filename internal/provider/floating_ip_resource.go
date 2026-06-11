@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 
-	"github.com/sagadata-public/sagadata-go"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/defaultplanmodifier"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/resourceenhancer"
+	"github.com/epilayer-public/epilayer-go"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/defaultplanmodifier"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/resourceenhancer"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -73,7 +73,7 @@ func (r *FloatingIPResource) Schema(ctx context.Context, req resource.SchemaRequ
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf(sliceStringify(sagadata.AllRegions)...),
+					stringvalidator.OneOf(sliceStringify(epilayer.AllRegions)...),
 				},
 			}),
 			"description": resourceenhancer.Attribute(ctx, schema.StringAttribute{
@@ -98,8 +98,8 @@ func (r *FloatingIPResource) Schema(ctx context.Context, req resource.SchemaRequ
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf(string(sagadata.CreateFloatingIPJSONBodyVersionIpv4)),
-					// stringvalidator.OneOf(sliceStringify(sagadata.AllFloatingIPVersions)...),
+					stringvalidator.OneOf(string(epilayer.CreateFloatingIPJSONBodyVersionIpv4)),
+					// stringvalidator.OneOf(sliceStringify(epilayer.AllFloatingIPVersions)...),
 				},
 			}),
 			"ip_address": resourceenhancer.Attribute(ctx, schema.StringAttribute{
@@ -139,10 +139,10 @@ func (r *FloatingIPResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 	defer cancel()
 
-	body := sagadata.CreateFloatingIPJSONRequestBody{}
+	body := epilayer.CreateFloatingIPJSONRequestBody{}
 
 	body.Name = data.Name.ValueString()
-	body.Region = sagadata.Region(data.Region.ValueString())
+	body.Region = epilayer.Region(data.Region.ValueString())
 	body.Description = pointer(data.Description.ValueString())
 
 	response, err := r.client.CreateFloatingIPWithResponse(ctx, body)
@@ -202,7 +202,7 @@ func (r *FloatingIPResource) Create(ctx context.Context, req resource.CreateRequ
 		}
 
 		status := floatingIPResponse.FloatingIp.Status
-		if status == sagadata.FloatingIpStatusCreated || status == sagadata.FloatingIpStatusError {
+		if status == epilayer.FloatingIpStatusCreated || status == epilayer.FloatingIpStatusError {
 			resp.Diagnostics.Append(data.PopulateFromClientResponse(ctx, &floatingIPResponse.FloatingIp)...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -214,7 +214,7 @@ func (r *FloatingIPResource) Create(ctx context.Context, req resource.CreateRequ
 				return
 			}
 
-			if status == sagadata.FloatingIpStatusError {
+			if status == epilayer.FloatingIpStatusError {
 				resp.Diagnostics.AddError("Provisioning Error", generateErrorMessage("polling floatingIP", ErrResourceInErrorState))
 			}
 			return
@@ -283,7 +283,7 @@ func (r *FloatingIPResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 	defer cancel()
 
-	body := sagadata.UpdateFloatingIPJSONRequestBody{}
+	body := epilayer.UpdateFloatingIPJSONRequestBody{}
 
 	body.Name = pointer(data.Name.ValueString())
 	body.Description = data.Description.ValueStringPointer()

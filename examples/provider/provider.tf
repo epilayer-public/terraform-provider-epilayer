@@ -1,16 +1,16 @@
 terraform {
   required_providers {
-    sagadata = {
-      source = "sagadata-public/sagadata"
+    epilayer = {
+      source = "epilayer-public/epilayer"
       # version = "..."
     }
   }
 }
 
-provider "sagadata" {
+provider "epilayer" {
   # optional configuration...
 
-  # set SAGADATA_TOKEN env var or:
+  # set EPILAYER_TOKEN env var or:
   # token = "..."
 }
 
@@ -20,12 +20,12 @@ locals {
   region = "NORD-NO-KRS-1"
 }
 
-resource "sagadata_ssh_key" "alice" {
+resource "epilayer_ssh_key" "alice" {
   name       = "alice"
   public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBOpdKM8wSI07+PO4xLDL7zW/kNWGbdFXeHyBU1TRlBn alice@example.com"
 }
 
-resource "sagadata_security_group" "allow-ssh" {
+resource "epilayer_security_group" "allow-ssh" {
   name   = "allow-ssh"
   region = local.region
   rules = [
@@ -38,7 +38,7 @@ resource "sagadata_security_group" "allow-ssh" {
   ]
 }
 
-resource "sagadata_security_group" "allow-http" {
+resource "epilayer_security_group" "allow-http" {
   name   = "allow-http"
   region = local.region
   rules = [
@@ -51,7 +51,7 @@ resource "sagadata_security_group" "allow-http" {
   ]
 }
 
-resource "sagadata_security_group" "allow-https" {
+resource "epilayer_security_group" "allow-https" {
   name   = "allow-https"
   region = local.region
   rules = [
@@ -64,13 +64,13 @@ resource "sagadata_security_group" "allow-https" {
   ]
 }
 
-resource "sagadata_floating_ip" "floating_ip" {
+resource "epilayer_floating_ip" "floating_ip" {
   name    = "terraform-floating-ip"
   region  = local.region
   version = "ipv4"
 }
 
-resource "sagadata_instance" "instance" {
+resource "epilayer_instance" "instance" {
   name   = "terraform-instance"
   region = local.region
 
@@ -78,16 +78,16 @@ resource "sagadata_instance" "instance" {
   type  = "vcpu-4_memory-16g_nvidia-rtx-3080-1"
 
   ssh_key_ids = [
-    sagadata_ssh_key.alice.id,
+    epilayer_ssh_key.alice.id,
   ]
 
   security_group_ids = [
-    sagadata_security_group.allow-ssh.id,
-    sagadata_security_group.allow-http.id,
-    sagadata_security_group.allow-https.id,
+    epilayer_security_group.allow-ssh.id,
+    epilayer_security_group.allow-http.id,
+    epilayer_security_group.allow-https.id,
   ]
 
-  floating_ip_id = sagadata_floating_ip.floating_ip.id
+  floating_ip_id = epilayer_floating_ip.floating_ip.id
 
   disk_size = 128
 
@@ -104,5 +104,5 @@ EOF
 }
 
 output "connect" {
-  value = "ssh ubuntu@${sagadata_instance.instance.public_ip}"
+  value = "ssh ubuntu@${epilayer_instance.instance.public_ip}"
 }

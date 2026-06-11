@@ -9,7 +9,7 @@ import (
 
 func testAccSSHKeyResourceConfig(name, publicKey string) string {
 	return fmt.Sprintf(`
-resource "sagadata_ssh_key" "test" {
+resource "epilayer_ssh_key" "test" {
   name       = %[1]q
   public_key = %[2]q
 }
@@ -27,14 +27,14 @@ func TestAccSSHKeyResource(t *testing.T) {
 			{
 				Config: providerConfig + testAccSSHKeyResourceConfig("one", samplePublicKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// resource.TestCheckResourceAttr("sagadata_ssh_key.test", "id", "ssh-key-id"),
-					resource.TestCheckResourceAttr("sagadata_ssh_key.test", "name", "one"),
-					resource.TestCheckResourceAttr("sagadata_ssh_key.test", "public_key", samplePublicKey),
+					// resource.TestCheckResourceAttr("epilayer_ssh_key.test", "id", "ssh-key-id"),
+					resource.TestCheckResourceAttr("epilayer_ssh_key.test", "name", "one"),
+					resource.TestCheckResourceAttr("epilayer_ssh_key.test", "public_key", samplePublicKey),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "sagadata_ssh_key.test",
+				ResourceName:      "epilayer_ssh_key.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -42,7 +42,7 @@ func TestAccSSHKeyResource(t *testing.T) {
 			{
 				Config: providerConfig + testAccSSHKeyResourceConfig("two", samplePublicKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("sagadata_ssh_key.test", "name", "two"),
+					resource.TestCheckResourceAttr("epilayer_ssh_key.test", "name", "two"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase

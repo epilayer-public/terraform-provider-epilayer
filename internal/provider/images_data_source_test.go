@@ -7,7 +7,7 @@ import (
 )
 
 const testAccImagesDataSourceConfig = `
-data "sagadata_images" "test" {
+data "epilayer_images" "test" {
 	type = "cloud-image"
 }
 `
@@ -22,12 +22,12 @@ func TestAccImagesDataSource(t *testing.T) {
 				Config: providerConfig + testAccImagesDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Verify number of images returned
-					resource.TestCheckResourceAttr("data.sagadata_images.test", "images.#", "3"),
+					resource.TestCheckResourceAttr("data.epilayer_images.test", "images.#", "3"),
 					// Verify the first coffee to ensure all attributes are set
-					resource.TestCheckResourceAttr("data.sagadata_images.test", "images.0.id", "todo-uuid"),
-					resource.TestCheckResourceAttr("data.sagadata_images.test", "images.0.name", "todo-name"),
+					resource.TestCheckResourceAttr("data.epilayer_images.test", "images.0.id", "todo-uuid"),
+					resource.TestCheckResourceAttr("data.epilayer_images.test", "images.0.name", "todo-name"),
 					// Verify placeholder id attribute
-					resource.TestCheckResourceAttr("data.sagadata_images.test", "id", "none"),
+					resource.TestCheckResourceAttr("data.epilayer_images.test", "id", "none"),
 				),
 			},
 		},

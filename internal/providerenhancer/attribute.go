@@ -3,7 +3,7 @@ package providerenhancer
 import (
 	"context"
 
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/resourceenhancer"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/resourceenhancer"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 )
 

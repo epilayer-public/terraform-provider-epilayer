@@ -1,17 +1,17 @@
-# Terraform Provider for Saga Data
+# Terraform Provider for EpiLayer
 
-The Saga Data provider is used to interact with resources supported by [Saga Data](https://www.sagadata.no/). The provider needs to be configured with the proper credentials before it can be used.
+The EpiLayer provider is used to interact with resources supported by [EpiLayer](https://www.epilayer.eu/). The provider needs to be configured with the proper credentials before it can be used.
 
-- [Documentation](https://registry.terraform.io/providers/sagadata-public/sagadata/latest/docs)
-- [Saga Data API Documentation](https://developers.sagadata.no/)
-- [How to generate an API token?](https://support.sagadata.no/support/solutions/articles/47001126146-how-to-generate-an-api-token-)
+- [Documentation](https://registry.terraform.io/providers/epilayer-public/epilayer/latest/docs)
+- [EpiLayer API Documentation](https://developers.epilayer.eu/)
+- [How to generate an API token?](https://support.epilayer.eu/support/solutions/articles/47001126146-how-to-generate-an-api-token-)
 - [Terraform Website](https://www.terraform.io)
 
 This repository is licensed under Mozilla Public License 2.0 (no copyleft exception) (see [LICENSE.txt](./LICENSE.txt)) and includes third-party code subject to third-party notices (see [THIRD-PARTY-NOTICES.txt](./THIRD-PARTY-NOTICES.txt)).
 
 # Maintainers
 
-This provider plugin is maintained by Saga Data. If you encounter any problems, feel free to create issues or pull requests.
+This provider plugin is maintained by EpiLayer. If you encounter any problems, feel free to create issues or pull requests.
 
 ## Requirements
 

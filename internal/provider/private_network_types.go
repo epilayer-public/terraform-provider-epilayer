@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/sagadata-public/sagadata-go"
+	"github.com/epilayer-public/epilayer-go"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,7 +40,7 @@ type PrivateNetworkResourceModel struct {
 	Timeouts timeouts.Value `tfsdk:"timeouts"`
 }
 
-func (data *PrivateNetworkResourceModel) PopulateFromClientResponse(ctx context.Context, network *sagadata.PrivateNetwork) (diag diag.Diagnostics) {
+func (data *PrivateNetworkResourceModel) PopulateFromClientResponse(ctx context.Context, network *epilayer.PrivateNetwork) (diag diag.Diagnostics) {
 	data.CreatedAt = types.StringValue(network.CreatedAt.Format(time.RFC3339))
 	data.Id = types.StringValue(network.Id)
 	data.Name = types.StringValue(network.Name)

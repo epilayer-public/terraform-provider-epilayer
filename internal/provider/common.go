@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/sagadata-public/sagadata-go"
+	"github.com/epilayer-public/epilayer-go"
 )
 
 type ErrorResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	Error        *sagadata.Error
+	Error        *epilayer.Error
 }
 
 var ErrResourceInErrorState = errors.New("the resource is in error state")

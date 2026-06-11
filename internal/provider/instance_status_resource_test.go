@@ -9,7 +9,7 @@ import (
 
 func testAccInstanceStatusResourceConfig(name string, size int) string {
 	return fmt.Sprintf(`
-resource "sagadata_instance_status" "test" {
+resource "epilayer_instance_status" "test" {
   name = %[1]q
   size = %[2]q
 }
@@ -25,14 +25,14 @@ func TestAccInstanceStatusResource(t *testing.T) {
 			{
 				Config: providerConfig + testAccInstanceStatusResourceConfig("one", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// resource.TestCheckResourceAttr("sagadata_instance_status.test", "id", "ssh-key-id"),
-					resource.TestCheckResourceAttr("sagadata_instance_status.test", "name", "one"),
-					resource.TestCheckResourceAttr("sagadata_instance_status.test", "size", "1"),
+					// resource.TestCheckResourceAttr("epilayer_instance_status.test", "id", "ssh-key-id"),
+					resource.TestCheckResourceAttr("epilayer_instance_status.test", "name", "one"),
+					resource.TestCheckResourceAttr("epilayer_instance_status.test", "size", "1"),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "sagadata_instance_status.test",
+				ResourceName:      "epilayer_instance_status.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -40,7 +40,7 @@ func TestAccInstanceStatusResource(t *testing.T) {
 			{
 				Config: providerConfig + testAccInstanceStatusResourceConfig("two", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("sagadata_instance_status.test", "name", "two"),
+					resource.TestCheckResourceAttr("epilayer_instance_status.test", "name", "two"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase

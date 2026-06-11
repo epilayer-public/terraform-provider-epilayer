@@ -10,9 +10,9 @@ import (
 
 const (
 	// providerConfig is a shared configuration to combine with the actual
-	// test configuration so the Saga Data client is properly configured.
+	// test configuration so the EpiLayer client is properly configured.
 	providerConfig = `
-provider "sagadata" {}
+provider "epilayer" {}
 `
 )
 
@@ -21,7 +21,7 @@ provider "sagadata" {}
 // CLI command executed to create a provider server to which the CLI can
 // reattach.
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"sagadata": providerserver.NewProtocol6WithError(New("test")()),
+	"epilayer": providerserver.NewProtocol6WithError(New("test")()),
 }
 
 func testAccPreCheck(t *testing.T) {
@@ -29,8 +29,8 @@ func testAccPreCheck(t *testing.T) {
 	// about the appropriate environment variables being set are common to see in a pre-check
 	// function
 
-	if os.Getenv("SAGADATA_TOKEN") == "" {
-		t.Fatal("SAGADATA_TOKEN must be set for acceptance tests")
+	if os.Getenv("EPILAYER_TOKEN") == "" {
+		t.Fatal("EPILAYER_TOKEN must be set for acceptance tests")
 	}
 
 }

@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/datasourceenhancer"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/datasourceenhancer"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"

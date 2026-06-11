@@ -1,40 +1,40 @@
 ---
-page_title: "Provider: Saga Data"
+page_title: "Provider: EpiLayer"
 subcategory: ""
 description: |-
-  The Saga Data provider is used to interact with resources supported by Saga Data https://www.sagadata.no/. The provider needs to be configured with the proper credentials before it can be used.
+  The EpiLayer provider is used to interact with resources supported by EpiLayer https://www.epilayer.eu/. The provider needs to be configured with the proper credentials before it can be used.
 ---
 
-# Saga Data Provider
+# EpiLayer Provider
 
-The Saga Data provider is used to interact with resources supported by [Saga Data](https://www.sagadata.no/). The provider needs to be configured with the proper credentials before it can be used.
+The EpiLayer provider is used to interact with resources supported by [EpiLayer](https://www.epilayer.eu/). The provider needs to be configured with the proper credentials before it can be used.
 
-- [API Documentation](https://developers.sagadata.no/)
-- [How to generate an API token?](https://support.sagadata.no/support/solutions/articles/47001126146-how-to-generate-an-api-token-)
+- [API Documentation](https://developers.epilayer.eu/)
+- [How to generate an API token?](https://support.epilayer.eu/support/solutions/articles/47001126146-how-to-generate-an-api-token-)
 
-The [provider repository](https://github.com/sagadata-public/terraform-provider-sagadata) is licensed under Mozilla Public License 2.0 (no copyleft exception) (see [LICENSE.txt](https://github.com/sagadata-public/terraform-provider-sagadata/blob/main/LICENSE.txt)) and includes third-party code subject to third-party notices (see [THIRD-PARTY-NOTICES.txt](https://github.com/sagadata-public/terraform-provider-sagadata/blob/main/THIRD-PARTY-NOTICES.txt)).
+The [provider repository](https://github.com/epilayer-public/terraform-provider-epilayer) is licensed under Mozilla Public License 2.0 (no copyleft exception) (see [LICENSE.txt](https://github.com/epilayer-public/terraform-provider-epilayer/blob/main/LICENSE.txt)) and includes third-party code subject to third-party notices (see [THIRD-PARTY-NOTICES.txt](https://github.com/epilayer-public/terraform-provider-epilayer/blob/main/THIRD-PARTY-NOTICES.txt)).
 
 ## Example Usage
 
-- Create a Saga Data account
+- Create a EpiLayer account
 - Create an API token (see above)
-- Set the `SAGADATA_TOKEN` env var or specify the `token` in the provider
+- Set the `EPILAYER_TOKEN` env var or specify the `token` in the provider
 - Make sure to set the version in the provider
 
 ```terraform
 terraform {
   required_providers {
-    sagadata = {
-      source = "sagadata-public/sagadata"
+    epilayer = {
+      source = "epilayer-public/epilayer"
       # version = "..."
     }
   }
 }
 
-provider "sagadata" {
+provider "epilayer" {
   # optional configuration...
 
-  # set SAGADATA_TOKEN env var or:
+  # set EPILAYER_TOKEN env var or:
   # token = "..."
 }
 
@@ -44,12 +44,12 @@ locals {
   region = "NORD-NO-KRS-1"
 }
 
-resource "sagadata_ssh_key" "alice" {
+resource "epilayer_ssh_key" "alice" {
   name       = "alice"
   public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBOpdKM8wSI07+PO4xLDL7zW/kNWGbdFXeHyBU1TRlBn alice@example.com"
 }
 
-resource "sagadata_security_group" "allow-ssh" {
+resource "epilayer_security_group" "allow-ssh" {
   name   = "allow-ssh"
   region = local.region
   rules = [
@@ -62,7 +62,7 @@ resource "sagadata_security_group" "allow-ssh" {
   ]
 }
 
-resource "sagadata_security_group" "allow-http" {
+resource "epilayer_security_group" "allow-http" {
   name   = "allow-http"
   region = local.region
   rules = [
@@ -75,7 +75,7 @@ resource "sagadata_security_group" "allow-http" {
   ]
 }
 
-resource "sagadata_security_group" "allow-https" {
+resource "epilayer_security_group" "allow-https" {
   name   = "allow-https"
   region = local.region
   rules = [
@@ -88,13 +88,13 @@ resource "sagadata_security_group" "allow-https" {
   ]
 }
 
-resource "sagadata_floating_ip" "floating_ip" {
+resource "epilayer_floating_ip" "floating_ip" {
   name    = "terraform-floating-ip"
   region  = local.region
   version = "ipv4"
 }
 
-resource "sagadata_instance" "instance" {
+resource "epilayer_instance" "instance" {
   name   = "terraform-instance"
   region = local.region
 
@@ -102,16 +102,16 @@ resource "sagadata_instance" "instance" {
   type  = "vcpu-4_memory-16g_nvidia-rtx-3080-1"
 
   ssh_key_ids = [
-    sagadata_ssh_key.alice.id,
+    epilayer_ssh_key.alice.id,
   ]
 
   security_group_ids = [
-    sagadata_security_group.allow-ssh.id,
-    sagadata_security_group.allow-http.id,
-    sagadata_security_group.allow-https.id,
+    epilayer_security_group.allow-ssh.id,
+    epilayer_security_group.allow-http.id,
+    epilayer_security_group.allow-https.id,
   ]
 
-  floating_ip_id = sagadata_floating_ip.floating_ip.id
+  floating_ip_id = epilayer_floating_ip.floating_ip.id
 
   disk_size = 128
 
@@ -128,7 +128,7 @@ EOF
 }
 
 output "connect" {
-  value = "ssh ubuntu@${sagadata_instance.instance.public_ip}"
+  value = "ssh ubuntu@${epilayer_instance.instance.public_ip}"
 }
 ```
 
@@ -137,7 +137,7 @@ output "connect" {
 
 ### Optional
 
-- `endpoint` (String) Saga Data API endpoint. May also be provided via `SAGADATA_ENDPOINT` environment variable. If neither is provided, defaults to `https://public-api.nord-no-krs-1.sagadata.tum.fail/compute/v1`.
+- `endpoint` (String) EpiLayer API endpoint. May also be provided via `EPILAYER_ENDPOINT` environment variable. If neither is provided, defaults to `https://public-api.krs-1.epilayer.eu/compute/v1`.
 - `polling_interval` (String) The polling interval.
   - The string must be a positive [time duration](https://pkg.go.dev/time#ParseDuration), for example "10s".
-- `token` (String, Sensitive) Saga Data API token. May also be provided via `SAGADATA_TOKEN` environment variable.
+- `token` (String, Sensitive) EpiLayer API token. May also be provided via `EPILAYER_TOKEN` environment variable.

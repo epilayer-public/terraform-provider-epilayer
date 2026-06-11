@@ -13,48 +13,48 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/sagadata-public/sagadata-go"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/providerenhancer"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/timedurationvalidator"
+	"github.com/epilayer-public/epilayer-go"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/providerenhancer"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/timedurationvalidator"
 )
 
-// Ensure SagaDataProvider satisfies various provider interfaces.
+// Ensure EpiLayerProvider satisfies various provider interfaces.
 var (
-	_ provider.Provider = &SagaDataProvider{}
+	_ provider.Provider = &EpiLayerProvider{}
 )
 
-// SagaDataProvider defines the provider implementation.
-type SagaDataProvider struct {
+// EpiLayerProvider defines the provider implementation.
+type EpiLayerProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
 	version string
 }
 
-// SagaDataProviderModel describes the provider data model.
-type SagaDataProviderModel struct {
+// EpiLayerProviderModel describes the provider data model.
+type EpiLayerProviderModel struct {
 	Endpoint        types.String `tfsdk:"endpoint"`
 	Token           types.String `tfsdk:"token"`
 	PollingInterval types.String `tfsdk:"polling_interval"`
 }
 
-func (p *SagaDataProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "sagadata"
+func (p *EpiLayerProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "epilayer"
 	resp.Version = p.version
 }
 
-func (p *SagaDataProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *EpiLayerProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Saga Data provider is used to interact with resources supported by [Saga Data](https://www.sagadata.no/). The provider needs to be configured with the proper credentials before it can be used.",
+		MarkdownDescription: "The EpiLayer provider is used to interact with resources supported by [EpiLayer](https://www.epilayer.eu/). The provider needs to be configured with the proper credentials before it can be used.",
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
 				MarkdownDescription: fmt.Sprintf(
-					"Saga Data API endpoint. May also be provided via `SAGADATA_ENDPOINT` environment variable. If neither is provided, defaults to `%s`.",
-					sagadata.DefaultEndpoint),
+					"EpiLayer API endpoint. May also be provided via `EPILAYER_ENDPOINT` environment variable. If neither is provided, defaults to `%s`.",
+					epilayer.DefaultEndpoint),
 				Optional: true,
 			},
 			"token": schema.StringAttribute{
-				MarkdownDescription: "Saga Data API token. May also be provided via `SAGADATA_TOKEN` environment variable.",
+				MarkdownDescription: "EpiLayer API token. May also be provided via `EPILAYER_TOKEN` environment variable.",
 				Optional:            true,
 				Sensitive:           true,
 			},
@@ -69,8 +69,8 @@ func (p *SagaDataProvider) Schema(ctx context.Context, req provider.SchemaReques
 	}
 }
 
-func (p *SagaDataProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var data SagaDataProviderModel
+func (p *EpiLayerProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	var data EpiLayerProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
@@ -81,18 +81,18 @@ func (p *SagaDataProvider) Configure(ctx context.Context, req provider.Configure
 	if data.Endpoint.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("endpoint"),
-			"Unknown Saga Data API endpoint",
-			"The provider cannot create the Saga Data API client as there is an unknown configuration value for the Saga Data API endpoint. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the SAGADATA_ENDPOINT environment variable.",
+			"Unknown EpiLayer API endpoint",
+			"The provider cannot create the EpiLayer API client as there is an unknown configuration value for the EpiLayer API endpoint. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the EPILAYER_ENDPOINT environment variable.",
 		)
 	}
 
 	if data.Token.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("token"),
-			"Unknown Saga Data API token",
-			"The provider cannot create the Saga Data API client as there is an unknown configuration value for the Saga Data API token. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the SAGADATA_TOKEN environment variable.",
+			"Unknown EpiLayer API token",
+			"The provider cannot create the EpiLayer API client as there is an unknown configuration value for the EpiLayer API token. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the EPILAYER_TOKEN environment variable.",
 		)
 	}
 
@@ -100,7 +100,7 @@ func (p *SagaDataProvider) Configure(ctx context.Context, req provider.Configure
 		resp.Diagnostics.AddAttributeError(
 			path.Root("polling_interval"),
 			"Unknown Polling Interval",
-			"The provider cannot create the Saga Data API client as there is an unknown configuration value for the Polling Interval. "+
+			"The provider cannot create the EpiLayer API client as there is an unknown configuration value for the Polling Interval. "+
 				"Either target apply the source of the value first, set the value statically in the configuration, or remove it to use the default.",
 		)
 	}
@@ -109,8 +109,8 @@ func (p *SagaDataProvider) Configure(ctx context.Context, req provider.Configure
 		return
 	}
 
-	endpoint := os.Getenv("SAGADATA_ENDPOINT")
-	token := os.Getenv("SAGADATA_TOKEN")
+	endpoint := os.Getenv("EPILAYER_ENDPOINT")
+	token := os.Getenv("EPILAYER_TOKEN")
 	pollingInterval := 2 * time.Second
 
 	if !data.Endpoint.IsNull() {
@@ -134,15 +134,15 @@ func (p *SagaDataProvider) Configure(ctx context.Context, req provider.Configure
 	}
 
 	if endpoint == "" {
-		endpoint = sagadata.DefaultEndpoint
+		endpoint = epilayer.DefaultEndpoint
 	}
 
 	if token == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("token"),
-			"Missing Saga Data API token",
-			"The provider cannot create the Saga Data API client as there is a missing or empty value for the Saga Data API token. "+
-				"Set the token value in the configuration or use the SAGADATA_TOKEN environment variable. "+
+			"Missing EpiLayer API token",
+			"The provider cannot create the EpiLayer API client as there is a missing or empty value for the EpiLayer API token. "+
+				"Set the token value in the configuration or use the EPILAYER_TOKEN environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
@@ -152,7 +152,7 @@ func (p *SagaDataProvider) Configure(ctx context.Context, req provider.Configure
 	}
 
 	providerClient, err := NewClient(ctx, ClientConfig{
-		ClientConfig: sagadata.ClientConfig{
+		ClientConfig: epilayer.ClientConfig{
 			Endpoint: endpoint,
 			Token:    token,
 		},
@@ -160,8 +160,8 @@ func (p *SagaDataProvider) Configure(ctx context.Context, req provider.Configure
 	})
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to Create Saga Data API Client",
-			"An unexpected error occurred when creating the Saga Data API client. "+
+			"Unable to Create EpiLayer API Client",
+			"An unexpected error occurred when creating the EpiLayer API client. "+
 				"If the error is not clear, please contact the provider developers.\n\n"+
 				"Error: "+err.Error(),
 		)
@@ -172,7 +172,7 @@ func (p *SagaDataProvider) Configure(ctx context.Context, req provider.Configure
 	resp.ResourceData = providerClient
 }
 
-func (p *SagaDataProvider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *EpiLayerProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewInstanceResource,
 		NewInstanceStatusResource,
@@ -187,7 +187,7 @@ func (p *SagaDataProvider) Resources(ctx context.Context) []func() resource.Reso
 	}
 }
 
-func (p *SagaDataProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *EpiLayerProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewImagesDataSource,
 		NewKubernetesClusterDataSource,
@@ -196,7 +196,7 @@ func (p *SagaDataProvider) DataSources(ctx context.Context) []func() datasource.
 
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
-		return &SagaDataProvider{
+		return &EpiLayerProvider{
 			version: version,
 		}
 	}

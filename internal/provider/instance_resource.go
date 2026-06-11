@@ -3,8 +3,8 @@ package provider
 import (
 	"context"
 
-	"github.com/sagadata-public/sagadata-go"
-	"github.com/sagadata-public/terraform-provider-sagadata/internal/resourceenhancer"
+	"github.com/epilayer-public/epilayer-go"
+	"github.com/epilayer-public/terraform-provider-epilayer/internal/resourceenhancer"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -80,7 +80,7 @@ func (r *InstanceResource) Schema(ctx context.Context, req resource.SchemaReques
 			"image": resourceenhancer.Attribute(ctx, schema.StringAttribute{
 				MarkdownDescription: "The source image id, image slug or snapshot id of the instance. " +
 					"The image version can also specified together with the image slug in this format `<image-slug>:<version>`. " +
-					"Learn more about images [here](https://developers.sagadata.no/images).",
+					"Learn more about images [here](https://developers.epilayer.eu/images).",
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -105,7 +105,7 @@ func (r *InstanceResource) Schema(ctx context.Context, req resource.SchemaReques
 					"startup_script": resourceenhancer.Attribute(ctx, schema.StringAttribute{
 						MarkdownDescription: "A plain text bash script or \"cloud-config\" file that will be executed after the first instance boot. " +
 							"It is limited to 64 KiB in size. You can use it to configure your instance, e.g. installing the NVIDIA GPU driver. " +
-							"Learn more about [startup scripts and installing the GPU driver](https://support.sagadata.no/support/solutions/articles/47001122478).",
+							"Learn more about [startup scripts and installing the GPU driver](https://support.epilayer.eu/support/solutions/articles/47001122478).",
 						Optional: true,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.RequiresReplace(),
@@ -168,7 +168,7 @@ func (r *InstanceResource) Schema(ctx context.Context, req resource.SchemaReques
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf(sliceStringify(sagadata.AllRegions)...),
+					stringvalidator.OneOf(sliceStringify(epilayer.AllRegions)...),
 				},
 			}),
 			"security_group_ids": resourceenhancer.Attribute(ctx, schema.SetAttribute{
@@ -198,7 +198,7 @@ func (r *InstanceResource) Schema(ctx context.Context, req resource.SchemaReques
 				},
 			}),
 			"type": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "The instance type identifier. Learn more about instance types [here](https://developers.sagadata.no/instances#instance-types).",
+				MarkdownDescription: "The instance type identifier. Learn more about instance types [here](https://developers.epilayer.eu/instances#instance-types).",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -270,7 +270,7 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 	}
 	defer cancel()
 
-	body := sagadata.CreateInstanceJSONRequestBody{}
+	body := epilayer.CreateInstanceJSONRequestBody{}
 
 	body.Name = data.Name.ValueString()
 	body.Hostname = data.Hostname.ValueString()
@@ -279,7 +279,7 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 		body.Hostname = data.Name.ValueString()
 	}
 
-	body.Type = sagadata.InstanceType(data.Type.ValueString())
+	body.Type = epilayer.InstanceType(data.Type.ValueString())
 	body.Image = data.Image.ValueString()
 
 	if !data.FloatingIpId.IsNull() && !data.FloatingIpId.IsUnknown() {
@@ -288,13 +288,13 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 
 	if !data.ReservationId.IsNull() && !data.ReservationId.IsUnknown() {
 		body.ReservationId = data.ReservationId.ValueStringPointer()
-		body.BillingType = pointer(sagadata.InstanceBillingTypeReserved)
+		body.BillingType = pointer(epilayer.InstanceBillingTypeReserved)
 	}
 
 	if data.Metadata != nil {
 		body.Metadata = &struct {
 			StartupScript *string                        `json:"startup_script,omitempty"`
-			UserData      *sagadata.InstanceUserData `json:"user_data,omitempty"`
+			UserData      *epilayer.InstanceUserData `json:"user_data,omitempty"`
 		}{
 			StartupScript: pointer(data.Metadata.StartupScript.ValueString()),
 		}
@@ -327,7 +327,7 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 		body.Volumes = &volumeIds
 	}
 
-	body.Region = sagadata.Region(data.Region.ValueString())
+	body.Region = epilayer.Region(data.Region.ValueString())
 
 	if !data.PlacementOption.IsNull() && !data.PlacementOption.IsUnknown() {
 		body.PlacementOption = pointer(data.PlacementOption.ValueString())
@@ -398,7 +398,7 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 		}
 
 		status := instanceResponse.Instance.Status
-		if status == sagadata.InstanceStatusActive || status == sagadata.InstanceStatusError {
+		if status == epilayer.InstanceStatusActive || status == epilayer.InstanceStatusError {
 			resp.Diagnostics.Append(data.PopulateFromClientResponse(ctx, &instanceResponse.Instance)...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -410,7 +410,7 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 				return
 			}
 
-			if status == sagadata.InstanceStatusError {
+			if status == epilayer.InstanceStatusError {
 				resp.Diagnostics.AddError("Provisioning Error", generateErrorMessage("polling instance", ErrResourceInErrorState))
 			}
 			return
@@ -479,14 +479,14 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 	defer cancel()
 
-	body := sagadata.UpdateInstanceJSONRequestBody{}
+	body := epilayer.UpdateInstanceJSONRequestBody{}
 
 	body.Name = pointer(data.Name.ValueString())
 
 	if !data.SecurityGroupIds.IsNull() && !data.SecurityGroupIds.IsUnknown() {
 		var securityGroups []string
 		data.SecurityGroupIds.ElementsAs(ctx, &securityGroups, false)
-		body.SecurityGroups = &sagadata.InstanceUpdateSecurityGroups{}
+		body.SecurityGroups = &epilayer.InstanceUpdateSecurityGroups{}
 
 		err := body.SecurityGroups.FromInstanceUpdateSecurityGroupsList(securityGroups)
 		if err != nil {
@@ -498,7 +498,7 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 	if !data.VolumeIds.IsNull() && !data.VolumeIds.IsUnknown() {
 		var volumeIds []string
 		data.VolumeIds.ElementsAs(ctx, &volumeIds, false)
-		body.Volumes = &sagadata.InstanceUpdateVolumes{}
+		body.Volumes = &epilayer.InstanceUpdateVolumes{}
 
 		err := body.Volumes.FromInstanceUpdateVolumesList(volumeIds)
 		if err != nil {
