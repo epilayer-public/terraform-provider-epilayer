@@ -66,6 +66,13 @@ func (r *PrivateNetworkResource) Schema(ctx context.Context, req resource.Schema
 					stringplanmodifier.RequiresReplaceIfConfigured(),
 				},
 			}),
+			"gateway_ipv4": resourceenhancer.Attribute(ctx, schema.StringAttribute{
+				MarkdownDescription: "The IPv4 default gateway to advertise to instances via DHCP. Must be within the cidr_v4 range.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplaceIfConfigured(),
+				},
+			}),
 			"description": resourceenhancer.Attribute(ctx, schema.StringAttribute{
 				MarkdownDescription: "The human-readable description for the private network.",
 				Optional:            true,
@@ -152,6 +159,10 @@ func (r *PrivateNetworkResource) Create(ctx context.Context, req resource.Create
 
 	if !data.CidrV6.IsNull() && !data.CidrV6.IsUnknown() {
 		body.CidrV6 = pointer(data.CidrV6.ValueString())
+	}
+
+	if !data.GatewayIpv4.IsNull() && !data.GatewayIpv4.IsUnknown() {
+		body.GatewayIpv4 = pointer(data.GatewayIpv4.ValueString())
 	}
 
 	response, err := r.client.CreatePrivateNetworkWithResponse(ctx, body)

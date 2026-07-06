@@ -48,6 +48,8 @@ resource "epilayer_private_network" "ipv6_network" {
   - If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.
 - `description` (String) The human-readable description for the private network.
   - Sets the default value "" if the attribute is not set.
+- `gateway_ipv4` (String) The IPv4 default gateway to advertise to instances via DHCP. Must be within the cidr_v4 range.
+  - If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
