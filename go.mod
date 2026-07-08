@@ -3,7 +3,7 @@ module github.com/epilayer-public/terraform-provider-epilayer
 go 1.24.5
 
 require (
-	github.com/epilayer-public/epilayer-go v1.6.0
+	github.com/epilayer-public/epilayer-go v1.7.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hashicorp/terraform-plugin-docs v0.21.0
 	github.com/hashicorp/terraform-plugin-framework v1.14.1

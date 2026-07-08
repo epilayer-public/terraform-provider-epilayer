@@ -22,6 +22,9 @@ type PrivateNetworkResourceModel struct {
 	// Description The human-readable description for the private network.
 	Description types.String `tfsdk:"description"`
 
+	// GatewayIpv4 The IPv4 default gateway advertised to instances via DHCP.
+	GatewayIpv4 types.String `tfsdk:"gateway_ipv4"`
+
 	// Id The unique ID of the private network.
 	Id types.String `tfsdk:"id"`
 
@@ -59,6 +62,12 @@ func (data *PrivateNetworkResourceModel) PopulateFromClientResponse(ctx context.
 		data.CidrV6 = types.StringValue(*network.CidrV6)
 	} else {
 		data.CidrV6 = types.StringNull()
+	}
+
+	if network.GatewayIpv4 != nil {
+		data.GatewayIpv4 = types.StringValue(*network.GatewayIpv4)
+	} else {
+		data.GatewayIpv4 = types.StringNull()
 	}
 
 	return
