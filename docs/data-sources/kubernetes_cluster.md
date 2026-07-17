@@ -51,6 +51,7 @@ output "kubeconfig" {
 ### Read-Only
 
 - `created_at` (String) The timestamp when this Kubernetes cluster was created in RFC 3339.
+- `deploy_csi` (Boolean) Whether the CSI driver is deployed to this cluster.
 - `join_command` (String, Sensitive) The join command for worker nodes to join the cluster.
 - `kubeconfig` (String, Sensitive) The kubeconfig for accessing the Kubernetes cluster.
 - `name` (String) The human-readable name for the Kubernetes cluster.

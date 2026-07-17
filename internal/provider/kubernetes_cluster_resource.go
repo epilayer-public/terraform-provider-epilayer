@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -61,6 +62,15 @@ func (r *KubernetesClusterResource) Schema(ctx context.Context, req resource.Sch
 					stringplanmodifier.RequiresReplace(),
 				},
 			}),
+			"deploy_csi": resourceenhancer.Attribute(ctx, schema.BoolAttribute{
+				MarkdownDescription: "Deploy the Epilayer CSI driver into the cluster. Cannot be changed after creation.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+					boolplanmodifier.UseStateForUnknown(),
+				},
+			}),
 			"network": resourceenhancer.Attribute(ctx, schema.StringAttribute{
 				MarkdownDescription: "The network ID for the cluster (private network ID).",
 				Optional:            true,
@@ -104,6 +114,10 @@ func (r *KubernetesClusterResource) Create(ctx context.Context, req resource.Cre
 
 	if !data.Network.IsNull() && !data.Network.IsUnknown() {
 		body.Network = data.Network.ValueStringPointer()
+	}
+
+	if !data.DeployCsi.IsNull() && !data.DeployCsi.IsUnknown() {
+		body.DeployCsi = data.DeployCsi.ValueBoolPointer()
 	}
 
 	response, err := r.client.CreateKubernetesClusterWithResponse(ctx, body)

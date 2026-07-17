@@ -48,6 +48,8 @@ output "kubeconfig" {
 
 ### Optional
 
+- `deploy_csi` (Boolean) Deploy the Epilayer CSI driver into the cluster. Cannot be changed after creation.
+  - If the value of this attribute changes, the resource will be replaced.
 - `network` (String) The network ID for the cluster (private network ID).
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
