@@ -63,3 +63,7 @@ _Note:_ Acceptance tests create real resources, and often cost money to run.
 ```shell
 make testacc
 ```
+
+Note about `public_ip` attribute:
+
+- The `public_ip` field is now optional and can be set to control public IPv4 assignment on create. If omitted, the API will use its default public IP assignment behavior. After creation, changes to `public_ip` or `floating_ip_id` require replacement, the API supports updating it, but only in a stopped state. TODO: extend the functionality to allow this instead of replacing the whole instance.

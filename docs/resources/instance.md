@@ -85,6 +85,7 @@ resource "epilayer_instance" "with_k8s_cluster" {
 
 - `disk_size` (Number) The disk size of the instance in GB.
 - `floating_ip_id` (String) The floating IP attached to the instance.
+- `public_ip` (String) The public IPv4 IP-Address (IPv4 address). Optional at creation; if omitted, the API will use its default public IP assignment behavior. Changes to this field require replacement for the moment. Set to `"none"` to disable a public IP, or `"ephemeral"` to request an automatic ephemeral public IP. To attach an existing floating IP prefer `floating_ip_id`.
 - `hostname` (String) The hostname of your instance. If not provided will be initially set to the `name` attribute.
   - If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.
 - `k8s_cluster_id` (String) The Kubernetes cluster this instance belongs to.
@@ -111,7 +112,6 @@ resource "epilayer_instance" "with_k8s_cluster" {
 - `id` (String) The unique ID of the instance.
 - `image_id` (String) The resulting image ID of the instance.
 - `private_ip` (String) The private IPv4 IP-Address (IPv4 address).
-- `public_ip` (String) The public IPv4 IP-Address (IPv4 address).
 - `status` (String) The instance status.
 - `updated_at` (String) The timestamp when this image was last updated in RFC 3339.
 
