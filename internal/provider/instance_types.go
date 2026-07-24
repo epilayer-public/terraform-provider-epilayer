@@ -105,22 +105,34 @@ func (data *InstanceResourceModel) PopulateFromClientResponse(ctx context.Contex
 	data.Type = types.StringValue(string(instance.Type))
 	data.ImageId = types.StringValue(instance.Image.Id)
 
-	volumeIds := make([]string, 0) // volumes do NOT support NULL
-	for _, volume := range instance.Volumes {
-		volumeIds = append(volumeIds, volume.Id)
-	}
-	data.VolumeIds, diag = types.SetValueFrom(ctx, types.StringType, volumeIds)
-	if diag.HasError() {
-		return
+	if instance.Volumes != nil {
+		volumeIds := make([]string, 0)
+		for _, volume := range instance.Volumes {
+			if volume.Id != "" {
+				volumeIds = append(volumeIds, volume.Id)
+			}
+		}
+		if len(volumeIds) > 0 {
+			data.VolumeIds, diag = types.SetValueFrom(ctx, types.StringType, volumeIds)
+			if diag.HasError() {
+				return
+			}
+		}
 	}
 
-	securityGroupIds := make([]string, 0) // security groups do NOT support NULL
-	for _, securityGroup := range instance.SecurityGroups {
-		securityGroupIds = append(securityGroupIds, securityGroup.Id)
-	}
-	data.SecurityGroupIds, diag = types.SetValueFrom(ctx, types.StringType, securityGroupIds)
-	if diag.HasError() {
-		return
+	if instance.SecurityGroups != nil {
+		securityGroupIds := make([]string, 0)
+		for _, securityGroup := range instance.SecurityGroups {
+			if securityGroup.Id != "" {
+				securityGroupIds = append(securityGroupIds, securityGroup.Id)
+			}
+		}
+		if len(securityGroupIds) > 0 {
+			data.SecurityGroupIds, diag = types.SetValueFrom(ctx, types.StringType, securityGroupIds)
+			if diag.HasError() {
+				return
+			}
+		}
 	}
 
 	var sshKeyIds []string // ssh-keys do support NULL

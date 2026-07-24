@@ -155,6 +155,7 @@ func (r *InstanceResource) Schema(ctx context.Context, req resource.SchemaReques
 			}),
 			"public_ip": resourceenhancer.Attribute(ctx, schema.StringAttribute{
 				MarkdownDescription: "The public IPv4 IP-Address (IPv4 address).",
+				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(), // immutable
@@ -282,7 +283,28 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 	body.Type = epilayer.InstanceType(data.Type.ValueString())
 	body.Image = data.Image.ValueString()
 
-	if !data.FloatingIpId.IsNull() && !data.FloatingIpId.IsUnknown() {
+	// Allow create-time assignment of a public IP. `public_ip` and
+	// `floating_ip_id` are mutually exclusive; validate and map to the
+	// correct API fields. If `public_ip` is not set, the API default
+	// public-ip behavior is used.
+	if !data.PublicIp.IsNull() && !data.PublicIp.IsUnknown() && !data.FloatingIpId.IsNull() && !data.FloatingIpId.IsUnknown() {
+		resp.Diagnostics.AddError("Invalid Configuration", "only one of public_ip or floating_ip_id may be specified")
+		return
+	}
+
+	if !data.PublicIp.IsNull() && !data.PublicIp.IsUnknown() {
+		v := data.PublicIp.ValueString()
+		if v == "none" {
+			mode := epilayer.CreateInstanceJSONBodyPublicIpModeNone
+			body.PublicIpMode = &mode
+		} else if v == "ephemeral" || v == "" {
+			mode := epilayer.CreateInstanceJSONBodyPublicIpModeEphemeral
+			body.PublicIpMode = &mode
+		} else {
+			resp.Diagnostics.AddError("Invalid Configuration", "invalid value for public_ip: use \"none\" or \"ephemeral\"; to attach a specific IP use floating_ip_id")
+			return
+		}
+	} else if !data.FloatingIpId.IsNull() && !data.FloatingIpId.IsUnknown() {
 		body.FloatingIp = data.FloatingIpId.ValueStringPointer()
 	}
 
@@ -293,7 +315,7 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 
 	if data.Metadata != nil {
 		body.Metadata = &struct {
-			StartupScript *string                        `json:"startup_script,omitempty"`
+			StartupScript *string                    `json:"startup_script,omitempty"`
 			UserData      *epilayer.InstanceUserData `json:"user_data,omitempty"`
 		}{
 			StartupScript: pointer(data.Metadata.StartupScript.ValueString()),
