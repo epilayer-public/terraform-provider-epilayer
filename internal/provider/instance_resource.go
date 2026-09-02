@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -26,6 +27,39 @@ var (
 	_ resource.ResourceWithImportState      = &InstanceResource{}
 	_ resource.ResourceWithConfigValidators = &InstanceResource{}
 )
+
+// assignPublicIpValidator ensures that floating_ip_id and
+// assign_ephemeral_public_ip=true are not configured together.
+type assignPublicIpValidator struct{}
+
+func (v assignPublicIpValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var data InstanceResourceModel
+
+	diags := req.Config.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !data.FloatingIpId.IsNull() && !data.FloatingIpId.IsUnknown() &&
+		!data.AssignEphemeralPublicIp.IsNull() && !data.AssignEphemeralPublicIp.IsUnknown() &&
+		data.AssignEphemeralPublicIp.ValueBool() {
+
+		resp.Diagnostics.AddAttributeError(
+			path.Root("assign_ephemeral_public_ip"),
+			"Conflicting configuration",
+			"`assign_ephemeral_public_ip = true` cannot be set when `floating_ip_id` is provided. Use either an existing `floating_ip_id` or request an ephemeral public IP, not both.",
+		)
+	}
+}
+
+func (v assignPublicIpValidator) Description(ctx context.Context) string {
+	return "Ensure floating_ip_id and assign_ephemeral_public_ip=true are not both configured"
+}
+
+func (v assignPublicIpValidator) MarkdownDescription(ctx context.Context) string {
+	return "Ensure `floating_ip_id` and `assign_ephemeral_public_ip=true` are not both configured"
+}
 
 func NewInstanceResource() resource.Resource {
 	return &InstanceResource{}
@@ -158,7 +192,14 @@ func (r *InstanceResource) Schema(ctx context.Context, req resource.SchemaReques
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(), // immutable
-					// TODO: Could be changed outside of terraform via stop+start?
+				},
+			}),
+
+			"assign_ephemeral_public_ip": resourceenhancer.Attribute(ctx, schema.BoolAttribute{
+				MarkdownDescription: "Controls public IPv4 assignment on create. Set to `true` to request an ephemeral public IP, `false` to disable public IP, or leave unset to use the API default behavior.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(), // changing public IP mode requires replace for the moment
 				},
 			}),
 			"region": resourceenhancer.Attribute(ctx, schema.StringAttribute{
@@ -251,6 +292,7 @@ func (r *InstanceResource) ConfigValidators(ctx context.Context) []resource.Conf
 			path.MatchRoot("metadata").AtName("startup_script"),
 			// In the future add additional metadata options here
 		),
+		assignPublicIpValidator{},
 	}
 }
 
@@ -282,7 +324,20 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 	body.Type = epilayer.InstanceType(data.Type.ValueString())
 	body.Image = data.Image.ValueString()
 
-	if !data.FloatingIpId.IsNull() && !data.FloatingIpId.IsUnknown() {
+	// Configure public IP assignment on create. Use `assign_ephemeral_public_ip` to
+	// request an ephemeral public IP (true) or disable public IP (false). If
+	// unset the API default behavior is used. `floating_ip_id` can be used to
+	// attach an existing floating IP. `public_ip` is read-only and populated
+	// from the API response only.
+	if !data.AssignEphemeralPublicIp.IsNull() && !data.AssignEphemeralPublicIp.IsUnknown() {
+		var mode epilayer.CreateInstanceJSONBodyPublicIpMode
+		if data.AssignEphemeralPublicIp.ValueBool() {
+			mode = epilayer.CreateInstanceJSONBodyPublicIpMode("ephemeral")
+		} else {
+			mode = epilayer.CreateInstanceJSONBodyPublicIpMode("none")
+		}
+		body.PublicIpMode = pointer(mode)
+	} else if !data.FloatingIpId.IsNull() && !data.FloatingIpId.IsUnknown() {
 		body.FloatingIp = data.FloatingIpId.ValueStringPointer()
 	}
 
@@ -293,7 +348,7 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 
 	if data.Metadata != nil {
 		body.Metadata = &struct {
-			StartupScript *string                        `json:"startup_script,omitempty"`
+			StartupScript *string                    `json:"startup_script,omitempty"`
 			UserData      *epilayer.InstanceUserData `json:"user_data,omitempty"`
 		}{
 			StartupScript: pointer(data.Metadata.StartupScript.ValueString()),

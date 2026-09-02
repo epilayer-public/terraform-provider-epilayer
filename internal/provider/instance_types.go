@@ -82,6 +82,11 @@ type InstanceResourceModel struct {
 	// FloatingIp The floating IP of the instance.
 	FloatingIpId types.String `tfsdk:"floating_ip_id"`
 
+	// AssignEphemeralPublicIp Controls public IPv4 assignment on create.
+	// Set true to request an ephemeral public IP, false to disable public IP,
+	// or leave unset to use the API default behavior.
+	AssignEphemeralPublicIp types.Bool `tfsdk:"assign_ephemeral_public_ip"`
+
 	// ReservationId The id of the reservation the instance is associated with.
 	ReservationId types.String `tfsdk:"reservation_id"`
 
@@ -140,6 +145,11 @@ func (data *InstanceResourceModel) PopulateFromClientResponse(ctx context.Contex
 
 	if instance.PublicIp != nil {
 		data.PublicIp = types.StringValue(*instance.PublicIp)
+	} else {
+		// If the API returns no public IP (e.g., user requested no public IP),
+		// set an explicit empty string so Terraform sees a known value after
+		// apply instead of an unknown value.
+		data.PublicIp = types.StringValue("")
 	}
 
 	if instance.FloatingIp != nil {
