@@ -83,6 +83,8 @@ resource "epilayer_instance" "with_k8s_cluster" {
 
 ### Optional
 
+- `assign_ephemeral_public_ip` (Boolean) Controls public IPv4 assignment on create. Set to `true` to request an ephemeral public IP, `false` to disable public IP, or leave unset to use the API default behavior.
+  - If the value of this attribute changes, the resource will be replaced.
 - `disk_size` (Number) The disk size of the instance in GB.
 - `floating_ip_id` (String) The floating IP attached to the instance.
 - `hostname` (String) The hostname of your instance. If not provided will be initially set to the `name` attribute.
