@@ -51,6 +51,33 @@ func (v assignPublicIpValidator) ValidateResource(ctx context.Context, req resou
 			"`assign_ephemeral_public_ip = true` cannot be set when `floating_ip_id` is provided. Use either an existing `floating_ip_id` or request an ephemeral public IP, not both.",
 		)
 	}
+
+	// If the user explicitly disabled public IPs, they must not configure security groups.
+	if !data.AssignEphemeralPublicIp.IsNull() && !data.AssignEphemeralPublicIp.IsUnknown() &&
+		!data.AssignEphemeralPublicIp.ValueBool() {
+
+		// If the user explicitly disabled public IPs, disallow any configured
+		// security group references or a configured floating IP. We treat a
+		// non-null `security_group_ids` or `floating_ip_id` (even if unknown
+		// because it references another resource) as a configured value and
+		// fail at plan time so the user sees the error before any resources
+		// are created.
+		if !data.SecurityGroupIds.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("security_group_ids"),
+				"Invalid configuration",
+				"`security_group_ids` cannot be set when `assign_ephemeral_public_ip = false` because security groups require a public IP to be applied.",
+			)
+		}
+
+		if !data.FloatingIpId.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("floating_ip_id"),
+				"Invalid configuration",
+				"`floating_ip_id` cannot be set when `assign_ephemeral_public_ip = false` because that requests a public (floating) IP when public (ephemeral) IP is disabled.",
+			)
+		}
+	}
 }
 
 func (v assignPublicIpValidator) Description(ctx context.Context) string {
