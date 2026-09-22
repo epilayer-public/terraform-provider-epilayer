@@ -82,10 +82,10 @@ type InstanceResourceModel struct {
 	// FloatingIp The floating IP of the instance.
 	FloatingIpId types.String `tfsdk:"floating_ip_id"`
 
-	// AssignEphemeralPublicIp Controls public IPv4 assignment on create.
+	// AssignPublicIp Controls public IPv4 assignment on create.
 	// Set true to request an ephemeral public IP, false to disable public IP,
 	// or leave unset to use the API default behavior.
-	AssignEphemeralPublicIp types.Bool `tfsdk:"assign_ephemeral_public_ip"`
+	AssignPublicIp types.Bool `tfsdk:"assign_public_ip"`
 
 	// ReservationId The id of the reservation the instance is associated with.
 	ReservationId types.String `tfsdk:"reservation_id"`
@@ -152,8 +152,8 @@ func (data *InstanceResourceModel) PopulateFromClientResponse(ctx context.Contex
 		data.PublicIp = types.StringValue("")
 	}
 
-	if instance.FloatingIp != nil {
-		data.FloatingIpId = types.StringValue(instance.FloatingIp.Id)
+	if instance.FloatingIpId != nil {
+		data.FloatingIpId = types.StringValue(instance.FloatingIpId.Id)
 	}
 
 	if instance.ReservationId != nil {

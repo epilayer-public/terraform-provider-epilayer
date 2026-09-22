@@ -19,7 +19,7 @@ resource "epilayer_instance" "instance_with_no_public_ip" {
     epilayer_ssh_key.alice.id,
   ]
 
-  assign_ephemeral_public_ip = false
+  assign_public_ip = false
 }
 
 provider "epilayer" {

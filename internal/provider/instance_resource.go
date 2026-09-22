@@ -29,7 +29,7 @@ var (
 )
 
 // assignPublicIpValidator ensures that floating_ip_id and
-// assign_ephemeral_public_ip=true are not configured together.
+// assign_public_ip=true are not configured together.
 type assignPublicIpValidator struct{}
 
 func (v assignPublicIpValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
@@ -42,19 +42,19 @@ func (v assignPublicIpValidator) ValidateResource(ctx context.Context, req resou
 	}
 
 	if !data.FloatingIpId.IsNull() && !data.FloatingIpId.IsUnknown() &&
-		!data.AssignEphemeralPublicIp.IsNull() && !data.AssignEphemeralPublicIp.IsUnknown() &&
-		data.AssignEphemeralPublicIp.ValueBool() {
+		!data.AssignPublicIp.IsNull() && !data.AssignPublicIp.IsUnknown() &&
+		data.AssignPublicIp.ValueBool() {
 
 		resp.Diagnostics.AddAttributeError(
-			path.Root("assign_ephemeral_public_ip"),
+			path.Root("assign_public_ip"),
 			"Conflicting configuration",
-			"`assign_ephemeral_public_ip = true` cannot be set when `floating_ip_id` is provided. Use either an existing `floating_ip_id` or request an ephemeral public IP, not both.",
+			"`assign_public_ip = true` cannot be set when `floating_ip_id` is provided. Use either an existing `floating_ip_id` or request an ephemeral public IP, not both.",
 		)
 	}
 
 	// If the user explicitly disabled public IPs, they must not configure security groups.
-	if !data.AssignEphemeralPublicIp.IsNull() && !data.AssignEphemeralPublicIp.IsUnknown() &&
-		!data.AssignEphemeralPublicIp.ValueBool() {
+	if !data.AssignPublicIp.IsNull() && !data.AssignPublicIp.IsUnknown() &&
+		!data.AssignPublicIp.ValueBool() {
 
 		// If the user explicitly disabled public IPs, disallow any configured
 		// security group references or a configured floating IP. We treat a
@@ -66,7 +66,7 @@ func (v assignPublicIpValidator) ValidateResource(ctx context.Context, req resou
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_group_ids"),
 				"Invalid configuration",
-				"`security_group_ids` cannot be set when `assign_ephemeral_public_ip = false` because security groups require a public IP to be applied.",
+				"`security_group_ids` cannot be set when `assign_public_ip = false` because security groups require a public IP to be applied.",
 			)
 		}
 
@@ -74,18 +74,18 @@ func (v assignPublicIpValidator) ValidateResource(ctx context.Context, req resou
 			resp.Diagnostics.AddAttributeError(
 				path.Root("floating_ip_id"),
 				"Invalid configuration",
-				"`floating_ip_id` cannot be set when `assign_ephemeral_public_ip = false` because that requests a public (floating) IP when public (ephemeral) IP is disabled.",
+				"`floating_ip_id` cannot be set when `assign_public_ip = false` because that requests a public (floating) IP when public (ephemeral) IP is disabled.",
 			)
 		}
 	}
 }
 
 func (v assignPublicIpValidator) Description(ctx context.Context) string {
-	return "Ensure floating_ip_id and assign_ephemeral_public_ip=true are not both configured"
+	return "Ensure floating_ip_id and assign_public_ip=true are not both configured"
 }
 
 func (v assignPublicIpValidator) MarkdownDescription(ctx context.Context) string {
-	return "Ensure `floating_ip_id` and `assign_ephemeral_public_ip=true` are not both configured"
+	return "Ensure `floating_ip_id` and `assign_public_ip=true` are not both configured"
 }
 
 func NewInstanceResource() resource.Resource {
@@ -222,7 +222,7 @@ func (r *InstanceResource) Schema(ctx context.Context, req resource.SchemaReques
 				},
 			}),
 
-			"assign_ephemeral_public_ip": resourceenhancer.Attribute(ctx, schema.BoolAttribute{
+			"assign_public_ip": resourceenhancer.Attribute(ctx, schema.BoolAttribute{
 				MarkdownDescription: "Controls public IPv4 assignment on create. Set to `true` to request an ephemeral public IP, `false` to disable public IP, or leave unset to use the API default behavior.",
 				Optional:            true,
 				PlanModifiers: []planmodifier.Bool{
@@ -351,21 +351,16 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 	body.Type = epilayer.InstanceType(data.Type.ValueString())
 	body.Image = data.Image.ValueString()
 
-	// Configure public IP assignment on create. Use `assign_ephemeral_public_ip` to
+	// Configure public IP assignment on create. Use `assign_public_ip` to
 	// request an ephemeral public IP (true) or disable public IP (false). If
 	// unset the API default behavior is used. `floating_ip_id` can be used to
 	// attach an existing floating IP. `public_ip` is read-only and populated
 	// from the API response only.
-	if !data.AssignEphemeralPublicIp.IsNull() && !data.AssignEphemeralPublicIp.IsUnknown() {
-		var mode epilayer.CreateInstanceJSONBodyPublicIpMode
-		if data.AssignEphemeralPublicIp.ValueBool() {
-			mode = epilayer.CreateInstanceJSONBodyPublicIpMode("ephemeral")
-		} else {
-			mode = epilayer.CreateInstanceJSONBodyPublicIpMode("none")
-		}
-		body.PublicIpMode = pointer(mode)
+	if !data.AssignPublicIp.IsNull() && !data.AssignPublicIp.IsUnknown() {
+		val := data.AssignPublicIp.ValueBool()
+		body.AssignPublicIp = pointer(val)
 	} else if !data.FloatingIpId.IsNull() && !data.FloatingIpId.IsUnknown() {
-		body.FloatingIp = data.FloatingIpId.ValueStringPointer()
+		body.FloatingIpId = data.FloatingIpId.ValueStringPointer()
 	}
 
 	if !data.ReservationId.IsNull() && !data.ReservationId.IsUnknown() {
