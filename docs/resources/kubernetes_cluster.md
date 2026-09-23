@@ -20,10 +20,12 @@ resource "epilayer_private_network" "cluster_network" {
   cidr_v4 = "10.1.0.0/24"
 }
 
-# Create a Kubernetes cluster with a private network
+# Create a Kubernetes cluster with a private network and optional features
 resource "epilayer_kubernetes_cluster" "example" {
-  name    = "my-k8s-cluster"
-  network = epilayer_private_network.cluster_network.id
+  name                 = "my-k8s-cluster"
+  network              = epilayer_private_network.cluster_network.id
+  deploy_csi           = true
+  manage_load_balancers = true
 }
 
 # Access cluster credentials via the data source
@@ -48,7 +50,9 @@ output "kubeconfig" {
 
 ### Optional
 
-- `deploy_csi` (Boolean) Deploy the Epilayer CSI driver into the cluster. Cannot be changed after creation.
+- `deploy_csi` (Boolean) Whether the CSI driver is deployed to this cluster. Immutable after creation.
+  - If the value of this attribute changes, the resource will be replaced.
+- `manage_load_balancers` (Boolean) Automatically provision load balancers for Services of type LoadBalancer. Immutable after creation.
   - If the value of this attribute changes, the resource will be replaced.
 - `network` (String) The network ID for the cluster (private network ID).
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
