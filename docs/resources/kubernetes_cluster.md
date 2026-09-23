@@ -20,12 +20,10 @@ resource "epilayer_private_network" "cluster_network" {
   cidr_v4 = "10.1.0.0/24"
 }
 
-# Create a Kubernetes cluster with a private network and optional features
+# Create a Kubernetes cluster with a private network
 resource "epilayer_kubernetes_cluster" "example" {
-  name                 = "my-k8s-cluster"
-  network              = epilayer_private_network.cluster_network.id
-  deploy_csi           = true
-  manage_load_balancers = true
+  name    = "my-k8s-cluster"
+  network = epilayer_private_network.cluster_network.id
 }
 
 # Access cluster credentials via the data source

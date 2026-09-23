@@ -119,9 +119,9 @@ EOF
 }
 
 resource "epilayer_kubernetes_cluster" "example_cluster" {
-  name                 = "terraform-k8s-cluster"
-  network              = epilayer_private_network.cluster_network.id
-  deploy_csi           = true
+  name                  = "terraform-k8s-cluster"
+  network               = epilayer_private_network.cluster_network.id
+  deploy_csi            = true
   manage_load_balancers = true
 }
 
