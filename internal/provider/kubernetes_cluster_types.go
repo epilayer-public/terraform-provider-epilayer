@@ -17,6 +17,9 @@ type KubernetesClusterResourceModel struct {
 	// DeployCsi Whether the CSI driver is deployed to this cluster.
 	DeployCsi types.Bool `tfsdk:"deploy_csi"`
 
+	// ManageLoadBalancers Whether the cluster automatically provisions load balancers for Services of type LoadBalancer.
+	ManageLoadBalancers types.Bool `tfsdk:"manage_load_balancers"`
+
 	// Id The unique ID of the Kubernetes cluster.
 	Id types.String `tfsdk:"id"`
 
@@ -37,7 +40,16 @@ type KubernetesClusterResourceModel struct {
 
 func (data *KubernetesClusterResourceModel) PopulateFromClientResponse(ctx context.Context, cluster *epilayer.KubernetesCluster) (diag diag.Diagnostics) {
 	data.CreatedAt = types.StringValue(cluster.CreatedAt.Format(time.RFC3339))
-	data.DeployCsi = types.BoolValue(cluster.DeployCsi)
+	if cluster.DeployCsi != nil {
+		data.DeployCsi = types.BoolValue(*cluster.DeployCsi)
+	} else {
+		data.DeployCsi = types.BoolNull()
+	}
+	if cluster.ManageLoadBalancers != nil {
+		data.ManageLoadBalancers = types.BoolValue(*cluster.ManageLoadBalancers)
+	} else {
+		data.ManageLoadBalancers = types.BoolNull()
+	}
 	data.Id = types.StringValue(cluster.Id)
 	data.Name = types.StringValue(cluster.Name)
 	data.Status = types.StringValue(string(cluster.Status))
@@ -65,6 +77,9 @@ type KubernetesClusterDataSourceModel struct {
 	// DeployCsi Whether the CSI driver is deployed to this cluster.
 	DeployCsi types.Bool `tfsdk:"deploy_csi"`
 
+	// ManageLoadBalancers Whether the cluster automatically provisions load balancers for Services of type LoadBalancer.
+	ManageLoadBalancers types.Bool `tfsdk:"manage_load_balancers"`
+
 	// Status The Kubernetes cluster status.
 	Status types.String `tfsdk:"status"`
 
@@ -83,7 +98,16 @@ type KubernetesClusterDataSourceModel struct {
 
 func (data *KubernetesClusterDataSourceModel) PopulateFromClientResponse(ctx context.Context, cluster *epilayer.KubernetesCluster) (diag diag.Diagnostics) {
 	data.CreatedAt = types.StringValue(cluster.CreatedAt.Format(time.RFC3339))
-	data.DeployCsi = types.BoolValue(cluster.DeployCsi)
+	if cluster.DeployCsi != nil {
+		data.DeployCsi = types.BoolValue(*cluster.DeployCsi)
+	} else {
+		data.DeployCsi = types.BoolNull()
+	}
+	if cluster.ManageLoadBalancers != nil {
+		data.ManageLoadBalancers = types.BoolValue(*cluster.ManageLoadBalancers)
+	} else {
+		data.ManageLoadBalancers = types.BoolNull()
+	}
 	data.Id = types.StringValue(cluster.Id)
 	data.Name = types.StringValue(cluster.Name)
 	data.Status = types.StringValue(string(cluster.Status))

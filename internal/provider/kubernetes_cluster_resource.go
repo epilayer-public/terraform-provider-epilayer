@@ -63,7 +63,16 @@ func (r *KubernetesClusterResource) Schema(ctx context.Context, req resource.Sch
 				},
 			}),
 			"deploy_csi": resourceenhancer.Attribute(ctx, schema.BoolAttribute{
-				MarkdownDescription: "Deploy the Epilayer CSI driver into the cluster. Cannot be changed after creation.",
+				MarkdownDescription: "Whether the CSI driver is deployed to this cluster. Immutable after creation.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+					boolplanmodifier.UseStateForUnknown(),
+				},
+			}),
+			"manage_load_balancers": resourceenhancer.Attribute(ctx, schema.BoolAttribute{
+				MarkdownDescription: "Automatically provision load balancers for Services of type LoadBalancer. Immutable after creation.",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
@@ -118,6 +127,10 @@ func (r *KubernetesClusterResource) Create(ctx context.Context, req resource.Cre
 
 	if !data.DeployCsi.IsNull() && !data.DeployCsi.IsUnknown() {
 		body.DeployCsi = data.DeployCsi.ValueBoolPointer()
+	}
+
+	if !data.ManageLoadBalancers.IsNull() && !data.ManageLoadBalancers.IsUnknown() {
+		body.ManageLoadBalancers = data.ManageLoadBalancers.ValueBoolPointer()
 	}
 
 	response, err := r.client.CreateKubernetesClusterWithResponse(ctx, body)

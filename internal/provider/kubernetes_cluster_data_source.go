@@ -50,6 +50,10 @@ func (d *KubernetesClusterDataSource) Schema(ctx context.Context, req datasource
 				MarkdownDescription: "Whether the CSI driver is deployed to this cluster.",
 				Computed:            true,
 			}),
+			"manage_load_balancers": datasourceenhancer.Attribute(ctx, schema.BoolAttribute{
+				MarkdownDescription: "Whether the cluster automatically provisions load balancers for Services of type LoadBalancer.",
+				Computed:            true,
+			}),
 			"status": datasourceenhancer.Attribute(ctx, schema.StringAttribute{
 				MarkdownDescription: "The Kubernetes cluster status.",
 				Computed:            true,

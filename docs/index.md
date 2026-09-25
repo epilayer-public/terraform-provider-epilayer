@@ -31,6 +31,21 @@ terraform {
   }
 }
 
+// Example: instance without a public IP
+resource "epilayer_instance" "instance_with_no_public_ip" {
+  name   = "terraform-instance_with_no_public_ip"
+  region = local.region
+
+  image = "ubuntu-24.04"
+  type  = "vcpu-2_memory-4g"
+
+  ssh_key_ids = [
+    epilayer_ssh_key.alice.id,
+  ]
+
+  assign_public_ip = false
+}
+
 provider "epilayer" {
   # optional configuration...
 
@@ -125,6 +140,13 @@ set -eo pipefail
 EOF
 
   }
+}
+
+resource "epilayer_kubernetes_cluster" "example_cluster" {
+  name                  = "terraform-k8s-cluster"
+  network               = epilayer_private_network.cluster_network.id
+  deploy_csi            = true
+  manage_load_balancers = true
 }
 
 output "connect" {

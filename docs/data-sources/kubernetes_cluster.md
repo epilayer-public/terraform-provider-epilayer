@@ -54,6 +54,7 @@ output "kubeconfig" {
 - `deploy_csi` (Boolean) Whether the CSI driver is deployed to this cluster.
 - `join_command` (String, Sensitive) The join command for worker nodes to join the cluster.
 - `kubeconfig` (String, Sensitive) The kubeconfig for accessing the Kubernetes cluster.
+- `manage_load_balancers` (Boolean) Whether the cluster automatically provisions load balancers for Services of type LoadBalancer.
 - `name` (String) The human-readable name for the Kubernetes cluster.
 - `network` (String) The network ID for the cluster.
 - `status` (String) The Kubernetes cluster status.

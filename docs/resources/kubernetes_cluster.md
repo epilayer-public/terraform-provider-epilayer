@@ -48,7 +48,9 @@ output "kubeconfig" {
 
 ### Optional
 
-- `deploy_csi` (Boolean) Deploy the Epilayer CSI driver into the cluster. Cannot be changed after creation.
+- `deploy_csi` (Boolean) Whether the CSI driver is deployed to this cluster. Immutable after creation.
+  - If the value of this attribute changes, the resource will be replaced.
+- `manage_load_balancers` (Boolean) Automatically provision load balancers for Services of type LoadBalancer. Immutable after creation.
   - If the value of this attribute changes, the resource will be replaced.
 - `network` (String) The network ID for the cluster (private network ID).
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
