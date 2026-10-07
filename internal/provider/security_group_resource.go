@@ -84,7 +84,8 @@ func (r *SecurityGroupResource) Schema(ctx context.Context, req resource.SchemaR
 				},
 			}),
 			"rules": schema.ListNestedAttribute{
-				Required: true,
+				MarkdownDescription: "The security group rules. The list is complete: without an egress rule, the security group denies all outbound traffic.",
+				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"direction": resourceenhancer.Attribute(ctx, schema.StringAttribute{
@@ -162,6 +163,9 @@ func (r *SecurityGroupResource) Create(ctx context.Context, req resource.CreateR
 	body.Description = pointer(data.Description.ValueString())
 	body.Name = data.Name.ValueString()
 	body.Region = epilayer.Region(data.Region.ValueString())
+	// The resource declares the full rule list, so the API must not add its
+	// default egress rule.
+	body.DefaultEgress = pointer(false)
 
 	for _, rule := range data.Rules {
 		var portRangeMax, portRangeMin *int

@@ -152,8 +152,8 @@ func (data *InstanceResourceModel) PopulateFromClientResponse(ctx context.Contex
 		data.PublicIp = types.StringValue("")
 	}
 
-	if instance.FloatingIpId != nil {
-		data.FloatingIpId = types.StringValue(instance.FloatingIpId.Id)
+	if instance.FloatingIp != nil {
+		data.FloatingIpId = types.StringValue(instance.FloatingIp.Id)
 	}
 
 	if instance.ReservationId != nil {

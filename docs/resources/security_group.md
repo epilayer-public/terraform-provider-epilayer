@@ -36,7 +36,7 @@ resource "epilayer_security_group" "allow-https" {
 - `region` (String) The region identifier.
   - If the value of this attribute changes, the resource will be replaced.
   - The value must be one of: ["EUC-DE-MUC-1" "EUW-GB-MNC-1" "EUW-NL-AMS-1" "NA-CA-FTS-1" "NA-CA-MNZ-1" "NA-CA-PRG-1" "NORD-NO-KRS-1"].
-- `rules` (Attributes List) (see [below for nested schema](#nestedatt--rules))
+- `rules` (Attributes List) The security group rules. The list is complete: without an egress rule, the security group denies all outbound traffic. (see [below for nested schema](#nestedatt--rules))
 
 ### Optional
 
