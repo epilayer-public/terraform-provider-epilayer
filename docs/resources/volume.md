@@ -14,10 +14,9 @@ Volume resource
 
 ```terraform
 resource "epilayer_volume" "example" {
-  name   = "example"
-  region = "NORD-NO-KRS-1"
-  size   = 50
-  type   = "hdd"
+  name = "example"
+  size = 50
+  type = "hdd"
 }
 ```
 
@@ -27,9 +26,6 @@ resource "epilayer_volume" "example" {
 ### Required
 
 - `name` (String) The human-readable name for the volume.
-- `region` (String) The region identifier.
-  - If the value of this attribute changes, the resource will be replaced.
-  - The value must be one of: ["EUC-DE-MUC-1" "EUW-GB-MNC-1" "EUW-NL-AMS-1" "NA-CA-FTS-1" "NA-CA-MNZ-1" "NA-CA-PRG-1" "NORD-NO-KRS-1"].
 - `size` (Number) The storage size of this volume given in GiB.
   - The value must be at least 1.
 - `type` (String) The storage type of the volume.
@@ -40,6 +36,7 @@ resource "epilayer_volume" "example" {
 
 - `description` (String) The human-readable description for the volume.
   - Sets the default value "" if the attribute is not set.
+- `region` (String, Deprecated) The legacy region identifier, e.g. `NORD-NO-KRS-1`. The region follows from the provider's `endpoint`; setting it has no effect.
 - `retain_on_delete` (Boolean) Flag to retain the volume when the resource is deleted
   - Sets the default value "false" if the attribute is not set.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))

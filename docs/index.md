@@ -33,8 +33,7 @@ terraform {
 
 // Example: instance without a public IP
 resource "epilayer_instance" "instance_with_no_public_ip" {
-  name   = "terraform-instance_with_no_public_ip"
-  region = local.region
+  name = "terraform-instance_with_no_public_ip"
 
   image = "ubuntu-24.04"
   type  = "vcpu-2_memory-4g"
@@ -55,18 +54,13 @@ provider "epilayer" {
 
 # Create an instance:
 
-locals {
-  region = "NORD-NO-KRS-1"
-}
-
 resource "epilayer_ssh_key" "alice" {
   name       = "alice"
   public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBOpdKM8wSI07+PO4xLDL7zW/kNWGbdFXeHyBU1TRlBn alice@example.com"
 }
 
 resource "epilayer_security_group" "allow-ssh" {
-  name   = "allow-ssh"
-  region = local.region
+  name = "allow-ssh"
   rules = [
     {
       direction      = "ingress"
@@ -78,8 +72,7 @@ resource "epilayer_security_group" "allow-ssh" {
 }
 
 resource "epilayer_security_group" "allow-http" {
-  name   = "allow-http"
-  region = local.region
+  name = "allow-http"
   rules = [
     {
       direction      = "ingress"
@@ -91,8 +84,7 @@ resource "epilayer_security_group" "allow-http" {
 }
 
 resource "epilayer_security_group" "allow-https" {
-  name   = "allow-https"
-  region = local.region
+  name = "allow-https"
   rules = [
     {
       direction      = "ingress"
@@ -105,13 +97,11 @@ resource "epilayer_security_group" "allow-https" {
 
 resource "epilayer_floating_ip" "floating_ip" {
   name    = "terraform-floating-ip"
-  region  = local.region
   version = "ipv4"
 }
 
 resource "epilayer_instance" "instance" {
-  name   = "terraform-instance"
-  region = local.region
+  name = "terraform-instance"
 
   image = "ubuntu-24.04"
   type  = "vcpu-4_memory-16g_nvidia-rtx-3080-1"

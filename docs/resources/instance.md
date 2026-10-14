@@ -14,8 +14,7 @@ Instance resource
 
 ```terraform
 resource "epilayer_instance" "example" {
-  name   = "example"
-  region = "NORD-NO-KRS-1"
+  name = "example"
 
   image = "ubuntu-24.04"
   type  = "vcpu-2_memory-4g"
@@ -28,13 +27,11 @@ resource "epilayer_instance" "example" {
 # Example with private network
 resource "epilayer_private_network" "app_network" {
   name    = "app-network"
-  region  = "NORD-NO-KRS-1"
   cidr_v4 = "10.0.0.0/24"
 }
 
 resource "epilayer_instance" "with_private_network" {
-  name   = "app-server"
-  region = "NORD-NO-KRS-1"
+  name = "app-server"
 
   image = "ubuntu-24.04"
   type  = "vcpu-2_memory-4g"
@@ -48,13 +45,11 @@ resource "epilayer_instance" "with_private_network" {
 
 # Example with Kubernetes cluster
 resource "epilayer_kubernetes_cluster" "example" {
-  name   = "my-cluster"
-  region = "NORD-NO-KRS-1"
+  name = "my-cluster"
 }
 
 resource "epilayer_instance" "with_k8s_cluster" {
-  name   = "k8s-node"
-  region = "NORD-NO-KRS-1"
+  name = "k8s-node"
 
   image = "ubuntu-24.04"
   type  = "vcpu-2_memory-4g"
@@ -75,9 +70,6 @@ resource "epilayer_instance" "with_k8s_cluster" {
 - `image` (String) The source image id, image slug or snapshot id of the instance. The image version can also specified together with the image slug in this format `<image-slug>:<version>`. Learn more about images [here](https://developers.epilayer.eu/images).
   - If the value of this attribute changes, the resource will be replaced.
 - `name` (String) The human-readable name for the instance.
-- `region` (String) The region identifier.
-  - If the value of this attribute changes, the resource will be replaced.
-  - The value must be one of: ["EUC-DE-MUC-1" "EUW-GB-MNC-1" "EUW-NL-AMS-1" "NA-CA-FTS-1" "NA-CA-MNZ-1" "NA-CA-PRG-1" "NORD-NO-KRS-1"].
 - `type` (String) The instance type identifier. Learn more about instance types [here](https://developers.epilayer.eu/instances#instance-types).
   - If the value of this attribute changes, the resource will be replaced.
 
@@ -99,6 +91,7 @@ resource "epilayer_instance" "with_k8s_cluster" {
   - If the value of this attribute changes, the resource will be replaced.
 - `private_network_ids` (Set of String) The private networks to attach to the instance.
   - If the value of this attribute changes, the resource will be replaced.
+- `region` (String, Deprecated) The legacy region identifier, e.g. `NORD-NO-KRS-1`. The region follows from the provider's `endpoint`; setting it has no effect.
 - `reservation_id` (String) The id of the reservation the instance is associated with.
 - `security_group_ids` (Set of String) The security groups of the instance. If not provided will be set to the default security group.
 - `ssh_key_ids` (Set of String) The ssh keys of the instance.

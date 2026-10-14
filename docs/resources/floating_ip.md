@@ -15,7 +15,6 @@ floating IP resource
 ```terraform
 resource "epilayer_floating_ip" "floating_ip" {
   name    = "terraform-floating-ip"
-  region  = "NORD-NO-KRS-1"
   version = "ipv4"
 }
 ```
@@ -26,9 +25,6 @@ resource "epilayer_floating_ip" "floating_ip" {
 ### Required
 
 - `name` (String) The human-readable name for the floating IP.
-- `region` (String) The region identifier.
-  - If the value of this attribute changes, the resource will be replaced.
-  - The value must be one of: ["EUC-DE-MUC-1" "EUW-GB-MNC-1" "EUW-NL-AMS-1" "NA-CA-FTS-1" "NA-CA-MNZ-1" "NA-CA-PRG-1" "NORD-NO-KRS-1"].
 - `version` (String) The version of the floating IP.
   - If the value of this attribute changes, the resource will be replaced.
   - The value must be one of: ["ipv4"].
@@ -37,6 +33,7 @@ resource "epilayer_floating_ip" "floating_ip" {
 
 - `description` (String) The human-readable description set for the floating IP.
   - Sets the default value "" if the attribute is not set.
+- `region` (String, Deprecated) The legacy region identifier, e.g. `NORD-NO-KRS-1`. The region follows from the provider's `endpoint`; setting it has no effect.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

@@ -1,6 +1,5 @@
 resource "epilayer_instance" "example" {
-  name   = "example"
-  region = "NORD-NO-KRS-1"
+  name = "example"
 
   image = "ubuntu-24.04"
   type  = "vcpu-2_memory-4g"
@@ -13,13 +12,11 @@ resource "epilayer_instance" "example" {
 # Example with private network
 resource "epilayer_private_network" "app_network" {
   name    = "app-network"
-  region  = "NORD-NO-KRS-1"
   cidr_v4 = "10.0.0.0/24"
 }
 
 resource "epilayer_instance" "with_private_network" {
-  name   = "app-server"
-  region = "NORD-NO-KRS-1"
+  name = "app-server"
 
   image = "ubuntu-24.04"
   type  = "vcpu-2_memory-4g"
@@ -33,13 +30,11 @@ resource "epilayer_instance" "with_private_network" {
 
 # Example with Kubernetes cluster
 resource "epilayer_kubernetes_cluster" "example" {
-  name   = "my-cluster"
-  region = "NORD-NO-KRS-1"
+  name = "my-cluster"
 }
 
 resource "epilayer_instance" "with_k8s_cluster" {
-  name   = "k8s-node"
-  region = "NORD-NO-KRS-1"
+  name = "k8s-node"
 
   image = "ubuntu-24.04"
   type  = "vcpu-2_memory-4g"

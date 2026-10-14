@@ -1,6 +1,5 @@
 resource "epilayer_security_group" "allow-https" {
-  name   = "allow-https"
-  region = "NORD-NO-KRS-1"
+  name = "allow-https"
   rules = [
     {
       direction      = "ingress"

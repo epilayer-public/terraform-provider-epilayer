@@ -50,11 +50,9 @@ func (d *ImagesDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 						},
 					}),
 					"region": datasourceenhancer.Attribute(ctx, schema.StringAttribute{
-						MarkdownDescription: "Filter by the region identifier.",
+						MarkdownDescription: "The region follows from the provider's `endpoint`; setting it has no effect.",
+						DeprecationMessage:  "The region follows from the provider's endpoint. Remove the `region` filter; it is ignored and will be removed in the next major version.",
 						Optional:            true,
-						Validators: []validator.String{
-							stringvalidator.OneOf(sliceStringify(epilayer.AllRegions)...),
-						},
 					}),
 				},
 			},
@@ -76,7 +74,8 @@ func (d *ImagesDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 						}),
 						"regions": datasourceenhancer.Attribute(ctx, schema.SetAttribute{
 							ElementType:         types.StringType,
-							MarkdownDescription: "The list of regions in which this image can be used in.",
+							MarkdownDescription: "The legacy region identifiers. The region follows from the provider's `endpoint`.",
+							DeprecationMessage:  "The region follows from the provider's endpoint. `regions` will be removed in the next major version.",
 							Computed:            true,
 						}),
 						"type": datasourceenhancer.Attribute(ctx, schema.StringAttribute{
@@ -124,12 +123,6 @@ func (d *ImagesDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	filterType := pointer(epilayer.ImageType(data.Filter.Type.ValueString()))
 
-	var filterRegion *epilayer.Region
-
-	if !data.Filter.Region.IsNull() && !data.Filter.Region.IsUnknown() {
-		filterRegion = pointer(epilayer.Region(data.Filter.Region.ValueString()))
-	}
-
 	for page := 1; ; page++ {
 		response, err := d.client.ListImagesPaginatedWithResponse(ctx, &epilayer.ListImagesPaginatedParams{
 			Page:    pointer(page),
@@ -152,20 +145,6 @@ func (d *ImagesDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		}
 
 		for _, image := range imagesResponse.Images {
-			if filterRegion != nil {
-				var found bool
-				for _, region := range image.Regions {
-					if region == *filterRegion {
-						found = true
-						break
-					}
-				}
-
-				if !found {
-					continue
-				}
-			}
-
 			model := ImageModel{}
 			model.PopulateFromClientResponse(ctx, &image)
 

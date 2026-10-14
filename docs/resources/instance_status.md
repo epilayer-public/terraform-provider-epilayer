@@ -14,8 +14,7 @@ InstanceStatus resource
 
 ```terraform
 resource "epilayer_instance" "example" {
-  name   = "example"
-  region = "NORD-NO-KRS-1"
+  name = "example"
 
   image = "ubuntu-24.04"
   type  = "vcpu-2_memory-4g"

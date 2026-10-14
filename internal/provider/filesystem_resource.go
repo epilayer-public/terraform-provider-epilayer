@@ -75,13 +75,12 @@ func (r *FilesystemResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Required:            true,
 			}),
 			"region": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "The identifier for the region this filesystem exists in.",
-				Required:            true,
+				MarkdownDescription: regionDescription,
+				DeprecationMessage:  regionDeprecationMessage,
+				Optional:            true,
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.OneOf(sliceStringify(epilayer.AllRegions)...),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			}),
 			"size": resourceenhancer.Attribute(ctx, schema.Int64Attribute{
@@ -159,7 +158,6 @@ func (r *FilesystemResource) Create(ctx context.Context, req resource.CreateRequ
 
 	body.Description = pointer(data.Description.ValueString())
 	body.Name = data.Name.ValueString()
-	body.Region = epilayer.Region(data.Region.ValueString())
 	body.Size = int(data.Size.ValueInt64())
 	body.Type = pointer(epilayer.FilesystemType(data.Type.ValueString()))
 

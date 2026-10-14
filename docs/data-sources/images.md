@@ -21,8 +21,7 @@ data "epilayer_images" "cloud-images" {
 
 data "epilayer_images" "snapshots" {
   filter = {
-    type   = "snapshot"
-    region = "NORD-NO-KRS-1"
+    type = "snapshot"
   }
 }
 
@@ -59,8 +58,7 @@ Required:
 
 Optional:
 
-- `region` (String) Filter by the region identifier.
-  - The value must be one of: ["EUC-DE-MUC-1" "EUW-GB-MNC-1" "EUW-NL-AMS-1" "NA-CA-FTS-1" "NA-CA-MNZ-1" "NA-CA-PRG-1" "NORD-NO-KRS-1"].
+- `region` (String, Deprecated) The region follows from the provider's `endpoint`; setting it has no effect.
 
 
 <a id="nestedatt--timeouts"></a>
@@ -79,7 +77,7 @@ Read-Only:
 - `created_at` (String) The timestamp when this image was created in RFC 3339.
 - `id` (String) A unique number that can be used to identify and reference a specific image.
 - `name` (String) The display name that has been given to an image.
-- `regions` (Set of String) The list of regions in which this image can be used in.
+- `regions` (Set of String, Deprecated) The legacy region identifiers. The region follows from the provider's `endpoint`.
 - `slug` (String) The image slug.
 - `type` (String) Describes the kind of image.
 - `versions` (List of String) The list of versions if this is a cloud-image otherwise empty.

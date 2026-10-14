@@ -14,8 +14,7 @@ Security group resource
 
 ```terraform
 resource "epilayer_security_group" "allow-https" {
-  name   = "allow-https"
-  region = "NORD-NO-KRS-1"
+  name = "allow-https"
   rules = [
     {
       direction      = "ingress"
@@ -33,15 +32,13 @@ resource "epilayer_security_group" "allow-https" {
 ### Required
 
 - `name` (String) The human-readable name for the security group.
-- `region` (String) The region identifier.
-  - If the value of this attribute changes, the resource will be replaced.
-  - The value must be one of: ["EUC-DE-MUC-1" "EUW-GB-MNC-1" "EUW-NL-AMS-1" "NA-CA-FTS-1" "NA-CA-MNZ-1" "NA-CA-PRG-1" "NORD-NO-KRS-1"].
 - `rules` (Attributes List) The security group rules. The list is complete: without an egress rule, the security group denies all outbound traffic. (see [below for nested schema](#nestedatt--rules))
 
 ### Optional
 
 - `description` (String) The human-readable description for the security group.
   - Sets the default value "" if the attribute is not set.
+- `region` (String, Deprecated) The legacy region identifier, e.g. `NORD-NO-KRS-1`. The region follows from the provider's `endpoint`; setting it has no effect.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

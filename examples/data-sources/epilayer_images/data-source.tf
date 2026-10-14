@@ -6,8 +6,7 @@ data "epilayer_images" "cloud-images" {
 
 data "epilayer_images" "snapshots" {
   filter = {
-    type   = "snapshot"
-    region = "NORD-NO-KRS-1"
+    type = "snapshot"
   }
 }
 
