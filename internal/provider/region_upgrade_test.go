@@ -26,7 +26,8 @@ resource "epilayer_floating_ip" "region_upgrade" {
 }
 
 resource "epilayer_private_network" "region_upgrade" {
-  name = "tf-acc-region-upgrade"
+  name    = "tf-acc-region-upgrade"
+  cidr_v4 = "10.0.0.0/24"
   %[1]s
 }
 
@@ -38,6 +39,14 @@ resource "epilayer_security_group" "region_upgrade" {
       protocol       = "tcp"
       port_range_min = 22
       port_range_max = 22
+    },
+    # Provider 2.3.1 does not send default_egress = false, so without an
+    # egress rule the API adds its default one and the apply fails.
+    {
+      direction      = "egress"
+      protocol       = "tcp"
+      port_range_min = 443
+      port_range_max = 443
     },
   ]
   %[1]s
