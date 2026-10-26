@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 
 	"github.com/epilayer-public/epilayer-go"
 	"github.com/epilayer-public/terraform-provider-epilayer/internal/defaultplanmodifier"
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -25,6 +28,14 @@ var (
 	_ resource.ResourceWithConfigure        = &SecurityGroupResource{}
 	_ resource.ResourceWithImportState      = &SecurityGroupResource{}
 	_ resource.ResourceWithConfigValidators = &SecurityGroupResource{}
+	_ resource.ResourceWithValidateConfig   = &SecurityGroupResource{}
+)
+
+// securityGroupRuleProtocol matches a protocol name or an IP protocol number from 0 to 255. The
+// numbers 1, 6, 17 and 58 are left out: the API stores them as icmp, tcp, udp and icmp, which would
+// never match the configuration.
+var securityGroupRuleProtocol = regexp.MustCompile(
+	`^(all|icmp|tcp|udp|[02-57-9]|1[0-68-9]|[2-46-9][0-9]|5[0-79]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$`,
 )
 
 func NewSecurityGroupResource() resource.Resource {
@@ -95,24 +106,34 @@ func (r *SecurityGroupResource) Schema(ctx context.Context, req resource.SchemaR
 							},
 						}),
 						"port_range_max": resourceenhancer.Attribute(ctx, schema.Int64Attribute{
-							MarkdownDescription: "The maximum port number of the rule.",
-							Optional:            true,
+							MarkdownDescription: "The maximum port number of the rule, or the highest ICMP type for `icmp`. " +
+								"Leave it empty for the highest port. Ports only apply to `tcp` and `udp`: leave it empty " +
+								"for `all` and protocol numbers.",
+							Optional: true,
 							Validators: []validator.Int64{
 								int64validator.Between(1, 65535),
 							},
 						}),
 						"port_range_min": resourceenhancer.Attribute(ctx, schema.Int64Attribute{
-							MarkdownDescription: "The minimum port number of the rule.",
-							Optional:            true,
+							MarkdownDescription: "The minimum port number of the rule, or the lowest ICMP type for `icmp`. " +
+								"Leave it empty for the lowest port. Ports only apply to `tcp` and `udp`: leave it empty " +
+								"for `all` and protocol numbers.",
+							Optional: true,
 							Validators: []validator.Int64{
 								int64validator.Between(1, 65535),
 							},
 						}),
 						"protocol": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-							MarkdownDescription: "The protocol of the rule.",
-							Required:            true,
+							MarkdownDescription: "The protocol of the rule: `tcp`, `udp`, `icmp`, `all` (every IP " +
+								"protocol) or an IP protocol number from 0 to 255, e.g. `112` for VRRP, `47` for GRE, " +
+								"`50` for ESP or `51` for AH.",
+							Required: true,
 							Validators: []validator.String{
-								stringvalidator.OneOf(sliceStringify(epilayer.AllSecurityGroupRuleProtocols)...),
+								stringvalidator.RegexMatches(
+									securityGroupRuleProtocol,
+									"value must be `all`, `icmp`, `tcp`, `udp` or an IP protocol number from 0 to 255, "+
+										"using `icmp`, `tcp` and `udp` instead of 1, 6, 17 and 58",
+								),
 							},
 						}),
 					},
@@ -138,6 +159,44 @@ func (r *SecurityGroupResource) Schema(ctx context.Context, req resource.SchemaR
 func (r *SecurityGroupResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
 		// Improvement: Add additional rule validation
+	}
+}
+
+// ValidateConfig rejects ports on rules for `all` and protocol numbers already at plan time. Ports
+// only apply to tcp and udp, and ICMP types to icmp.
+func (r *SecurityGroupResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var rulesList types.List
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("rules"), &rulesList)...)
+	if resp.Diagnostics.HasError() || rulesList.IsNull() || rulesList.IsUnknown() {
+		return
+	}
+
+	var rules []SecurityGroupRuleModel
+	resp.Diagnostics.Append(rulesList.ElementsAs(ctx, &rules, false)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	for i, rule := range rules {
+		protocol := rule.Protocol.ValueString()
+		// Invalid protocols are reported by the protocol attribute's own validator
+		if rule.Protocol.IsUnknown() || !securityGroupRuleProtocol.MatchString(protocol) ||
+			protocol == "tcp" || protocol == "udp" || protocol == "icmp" {
+			continue
+		}
+		ports := []struct {
+			name  string
+			value types.Int64
+		}{{"port_range_min", rule.PortRangeMin}, {"port_range_max", rule.PortRangeMax}}
+		for _, port := range ports {
+			if !port.value.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("rules").AtListIndex(i).AtName(port.name),
+					"Ports don't apply to this protocol",
+					fmt.Sprintf("Ports only apply to tcp and udp. Leave port_range_min and port_range_max empty for protocol %q.", protocol),
+				)
+			}
+		}
 	}
 }
 
