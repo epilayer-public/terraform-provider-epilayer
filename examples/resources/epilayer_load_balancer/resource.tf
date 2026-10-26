@@ -13,8 +13,7 @@ locals {
 }
 
 resource "epilayer_instance" "example" {
-  name   = "example-instance"
-  region = "NORD-NO-KRS-1"
+  name = "example-instance"
 
   image = local.image_id
   type  = "vcpu-2_memory-4g"
@@ -30,7 +29,6 @@ resource "epilayer_instance" "example" {
 
 resource "epilayer_load_balancer" "example" {
   name        = "my-load-balancer-1"
-  region      = "NORD-NO-KRS-1"
   network     = "net-31e8c8f1-bca6-4ff9-af06-0f1d3624d158"
   mode        = "tcp"
   description = "This is a an example load balancer"

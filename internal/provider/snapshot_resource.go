@@ -63,12 +63,13 @@ func (r *SnapshotResource) Schema(ctx context.Context, req resource.SchemaReques
 				Required:            true,
 			}),
 			"replicated_region": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "Target region for snapshot replication. When specified, also creates a copy of the snapshot in the given region. If omitted, the snapshot exists only in the current region.",
-				Required:            false,
+				MarkdownDescription: "Snapshot replication to another region is not supported; setting it has no effect.",
+				DeprecationMessage:  "Snapshot replication to another region is not supported. Remove `replicated_region` from your configuration; it is ignored and will be removed in the next major version.",
 				Optional:            true,
 			}),
 			"region": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "The region identifier. Should only be explicity specified when using the 'source_snapshot_id'.",
+				MarkdownDescription: regionDescription,
+				DeprecationMessage:  regionDeprecationMessage,
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
@@ -83,7 +84,8 @@ func (r *SnapshotResource) Schema(ctx context.Context, req resource.SchemaReques
 				},
 			}),
 			"source_snapshot_id": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "The id of the source snapshot from which this snapsot was derived.",
+				MarkdownDescription: "Cloning snapshots is not supported; creating a snapshot with `source_snapshot_id` fails.",
+				DeprecationMessage:  "Cloning snapshots is not supported. Use `source_instance_id`.",
 				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -135,98 +137,42 @@ func (r *SnapshotResource) Create(ctx context.Context, req resource.CreateReques
 	}
 	defer cancel()
 
-	if data.SourceInstanceId.IsNull() && data.SourceSnapshotId.IsNull() {
+	if !data.SourceSnapshotId.IsNull() {
 		resp.Diagnostics.AddError(
 			"Invalid Configuration",
-			"Either 'source_instance_id' or 'source_snapshot_id' must be specified.",
+			"Cloning snapshots is not supported. Specify 'source_instance_id' instead of 'source_snapshot_id'.",
 		)
 		return
 	}
 
-	if !data.SourceInstanceId.IsNull() && !data.SourceSnapshotId.IsNull() {
+	if data.SourceInstanceId.IsNull() {
 		resp.Diagnostics.AddError(
 			"Invalid Configuration",
-			"Can only specify either 'source_instance_id' or 'source_snapshot_id', not both at the same time.",
+			"'source_instance_id' must be specified.",
 		)
 		return
 	}
 
-	var snapshotResponse *epilayer.SingleSnapshotResponse
+	body := epilayer.CreateInstanceSnapshotJSONRequestBody{}
 
-	if !data.SourceInstanceId.IsNull() {
-		if data.Region.ValueString() != "" {
-			resp.Diagnostics.AddError(
-				"Invalid Configuration",
-				"When specifying a source instance, the 'region' specification won't take effect",
-			)
-			return
+	body.Name = data.Name.ValueString()
 
-		}
-		body := epilayer.CreateInstanceSnapshotJSONRequestBody{}
+	instanceId := data.SourceInstanceId.ValueString()
 
-		body.Name = data.Name.ValueString()
+	response, err := r.client.CreateInstanceSnapshotWithResponse(ctx, instanceId, body)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", generateErrorMessage("create snapshot", err))
+		return
+	}
 
-		instanceId := data.SourceInstanceId.ValueString()
-
-		if !data.ReplicatedRegion.IsNull() {
-			body.ReplicatedRegion = pointer(epilayer.Region(data.ReplicatedRegion.ValueString()))
-		}
-
-		response, err := r.client.CreateInstanceSnapshotWithResponse(ctx, instanceId, body)
-		if err != nil {
-			resp.Diagnostics.AddError("Client Error", generateErrorMessage("create snapshot", err))
-			return
-		}
-
-		snapshotResponse = response.JSON201
-		if snapshotResponse == nil {
-			resp.Diagnostics.AddError("Client Error", generateClientErrorMessage("create snapshot", ErrorResponse{
-				Body:         response.Body,
-				HTTPResponse: response.HTTPResponse,
-				Error:        response.JSONDefault,
-			}))
-			return
-		}
-	} else if !data.SourceSnapshotId.IsNull() {
-		if data.Region.IsNull() {
-			resp.Diagnostics.AddError(
-				"Invalid Configuration",
-				"When specifying `source_snapshot_id` as the snapshot source, you must be specified the `region`.",
-			)
-			return
-		}
-
-		if !data.ReplicatedRegion.IsNull() {
-			resp.Diagnostics.AddError(
-				"Invalid Configuration",
-				"When specifying `source_snapshot_id` as the snapshot source, you cannot specify the `replicated_region`.",
-			)
-			return
-		}
-
-		body := epilayer.CloneSnapshotJSONRequestBody{}
-
-		body.Name = data.Name.ValueString()
-
-		body.Region = epilayer.Region(data.Region.ValueString())
-
-		snapshotId := data.SourceSnapshotId.ValueString()
-
-		response, err := r.client.CloneSnapshotWithResponse(ctx, snapshotId, body)
-		if err != nil {
-			resp.Diagnostics.AddError("Client Error", generateErrorMessage("clone snapshot", err))
-			return
-		}
-
-		snapshotResponse = response.JSON201
-		if snapshotResponse == nil {
-			resp.Diagnostics.AddError("Client Error", generateClientErrorMessage("clone snapshot", ErrorResponse{
-				Body:         response.Body,
-				HTTPResponse: response.HTTPResponse,
-				Error:        response.JSONDefault,
-			}))
-			return
-		}
+	snapshotResponse := response.JSON201
+	if snapshotResponse == nil {
+		resp.Diagnostics.AddError("Client Error", generateClientErrorMessage("create snapshot", ErrorResponse{
+			Body:         response.Body,
+			HTTPResponse: response.HTTPResponse,
+			Error:        response.JSONDefault,
+		}))
+		return
 	}
 
 	resp.Diagnostics.Append(data.PopulateFromClientResponse(ctx, &snapshotResponse.Snapshot)...)

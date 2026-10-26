@@ -23,9 +23,9 @@ import (
 )
 
 var (
-	_ resource.Resource                     = &LoadBalancerResource{}
-	_ resource.ResourceWithConfigure        = &LoadBalancerResource{}
-	_ resource.ResourceWithImportState      = &LoadBalancerResource{}
+	_ resource.Resource                = &LoadBalancerResource{}
+	_ resource.ResourceWithConfigure   = &LoadBalancerResource{}
+	_ resource.ResourceWithImportState = &LoadBalancerResource{}
 )
 
 func NewLoadBalancerResource() resource.Resource {
@@ -66,13 +66,12 @@ func (r *LoadBalancerResource) Schema(ctx context.Context, req resource.SchemaRe
 				},
 			}),
 			"region": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "The region identifier. Currently, only `NORD-NO-KRS-1` is supported.",
-				Required:            true,
+				MarkdownDescription: regionDescription,
+				DeprecationMessage:  regionDeprecationMessage,
+				Optional:            true,
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.OneOf("NORD-NO-KRS-1"),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			}),
 			"mode": resourceenhancer.Attribute(ctx, schema.StringAttribute{
@@ -197,7 +196,6 @@ func (r *LoadBalancerResource) Create(ctx context.Context, req resource.CreateRe
 
 	bodyMap := map[string]interface{}{
 		"name":    data.Name.ValueString(),
-		"region":  data.Region.ValueString(),
 		"network": data.Network.ValueString(),
 	}
 
@@ -400,8 +398,6 @@ func (r *LoadBalancerResource) Update(ctx context.Context, req resource.UpdateRe
 		})
 	}
 	body.Ports = &ports
-
-
 
 	lbId := data.Id.ValueString()
 

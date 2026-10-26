@@ -16,7 +16,6 @@ Filesystem resource
 resource "epilayer_filesystem" "example" {
   name        = "example"
   description = "Example filesystem"
-  region      = "NORD-NO-KRS-1"
   size        = 50
   type        = "vast"
 }
@@ -28,9 +27,6 @@ resource "epilayer_filesystem" "example" {
 ### Required
 
 - `name` (String) The human-readable name for the filesystem.
-- `region` (String) The identifier for the region this filesystem exists in.
-  - If the value of this attribute changes, the resource will be replaced.
-  - The value must be one of: ["EUC-DE-MUC-1" "EUW-GB-MNC-1" "EUW-NL-AMS-1" "NA-CA-FTS-1" "NA-CA-MNZ-1" "NA-CA-PRG-1" "NORD-NO-KRS-1"].
 - `size` (Number) The storage size of this filesystem given in GiB.
   - The value must be at least 1.
 - `type` (String) The storage type of the filesystem.
@@ -41,6 +37,7 @@ resource "epilayer_filesystem" "example" {
 
 - `description` (String) The human-readable description for the filesystem.
   - Sets the default value "" if the attribute is not set.
+- `region` (String, Deprecated) The legacy region identifier, e.g. `NORD-NO-KRS-1`. The region follows from the provider's `endpoint`; setting it has no effect.
 - `retain_on_delete` (Boolean) Flag to retain the filesystem when the resource is deleted
   - Sets the default value "false" if the attribute is not set.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))

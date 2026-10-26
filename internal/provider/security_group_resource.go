@@ -74,13 +74,12 @@ func (r *SecurityGroupResource) Schema(ctx context.Context, req resource.SchemaR
 				Required:            true,
 			}),
 			"region": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "The region identifier.",
-				Required:            true,
+				MarkdownDescription: regionDescription,
+				DeprecationMessage:  regionDeprecationMessage,
+				Optional:            true,
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.OneOf(sliceStringify(epilayer.AllRegions)...),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			}),
 			"rules": schema.ListNestedAttribute{
@@ -162,7 +161,6 @@ func (r *SecurityGroupResource) Create(ctx context.Context, req resource.CreateR
 
 	body.Description = pointer(data.Description.ValueString())
 	body.Name = data.Name.ValueString()
-	body.Region = epilayer.Region(data.Region.ValueString())
 	// The resource declares the full rule list, so the API must not add its
 	// default egress rule.
 	body.DefaultEgress = pointer(false)

@@ -44,3 +44,8 @@ func sliceStringify[T ~string](arr []T) []string {
 func pointer[T any](v T) *T {
 	return &v
 }
+
+const (
+	regionDescription        = "The legacy region identifier, e.g. `NORD-NO-KRS-1`. The region follows from the provider's `endpoint`; setting it has no effect."
+	regionDeprecationMessage = "The region follows from the provider's endpoint. Remove `region` from your configuration; it is ignored and will be removed in the next major version."
+)

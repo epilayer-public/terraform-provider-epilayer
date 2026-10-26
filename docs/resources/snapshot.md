@@ -34,13 +34,13 @@ resource "epilayer_snapshot" "example" {
 
 ### Optional
 
-- `region` (String) The region identifier. Should only be explicity specified when using the 'source_snapshot_id'.
-- `replicated_region` (String) Target region for snapshot replication. When specified, also creates a copy of the snapshot in the given region. If omitted, the snapshot exists only in the current region.
+- `region` (String, Deprecated) The legacy region identifier, e.g. `NORD-NO-KRS-1`. The region follows from the provider's `endpoint`; setting it has no effect.
+- `replicated_region` (String, Deprecated) Snapshot replication to another region is not supported; setting it has no effect.
 - `retain_on_delete` (Boolean) Flag to retain the snapshot when the resource is deleted.
   - Sets the default value "false" if the attribute is not set.
 - `source_instance_id` (String) The id of the source instance from which this snapshot was derived.
   - If the value of this attribute changes, the resource will be replaced.
-- `source_snapshot_id` (String) The id of the source snapshot from which this snapsot was derived.
+- `source_snapshot_id` (String, Deprecated) Cloning snapshots is not supported; creating a snapshot with `source_snapshot_id` fails.
   - If the value of this attribute changes, the resource will be replaced.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

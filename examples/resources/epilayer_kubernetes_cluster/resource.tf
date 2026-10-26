@@ -1,7 +1,6 @@
 # Create a private network for the Kubernetes cluster
 resource "epilayer_private_network" "cluster_network" {
   name    = "k8s-network"
-  region  = "NORD-NO-KRS-1"
   cidr_v4 = "10.1.0.0/24"
 }
 

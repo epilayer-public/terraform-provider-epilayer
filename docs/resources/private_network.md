@@ -17,7 +17,6 @@ Private network resource
 resource "epilayer_private_network" "example" {
   name        = "my-private-network"
   description = "Private network for my infrastructure"
-  region      = "NORD-NO-KRS-1"
   cidr_v4     = "10.0.0.0/24"
 }
 
@@ -25,7 +24,6 @@ resource "epilayer_private_network" "example" {
 resource "epilayer_private_network" "ipv6_network" {
   name        = "ipv6-network"
   description = "IPv6-only private network"
-  region      = "NORD-NO-KRS-1"
   cidr_v6     = "fd00::/64"
 }
 ```
@@ -36,9 +34,6 @@ resource "epilayer_private_network" "ipv6_network" {
 ### Required
 
 - `name` (String) The human-readable name for the private network.
-- `region` (String) The region identifier.
-  - If the value of this attribute changes, the resource will be replaced.
-  - The value must be one of: ["EUC-DE-MUC-1" "EUW-GB-MNC-1" "EUW-NL-AMS-1" "NA-CA-FTS-1" "NA-CA-MNZ-1" "NA-CA-PRG-1" "NORD-NO-KRS-1"].
 
 ### Optional
 
@@ -50,6 +45,7 @@ resource "epilayer_private_network" "ipv6_network" {
   - Sets the default value "" if the attribute is not set.
 - `gateway_ipv4` (String) The IPv4 default gateway to advertise to instances via DHCP. Must be within the cidr_v4 range.
   - If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.
+- `region` (String, Deprecated) The legacy region identifier, e.g. `NORD-NO-KRS-1`. The region follows from the provider's `endpoint`; setting it has no effect.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

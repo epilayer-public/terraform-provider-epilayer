@@ -28,8 +28,7 @@ locals {
 }
 
 resource "epilayer_instance" "example" {
-  name   = "example-instance"
-  region = "NORD-NO-KRS-1"
+  name = "example-instance"
 
   image = local.image_id
   type  = "vcpu-2_memory-4g"
@@ -45,7 +44,6 @@ resource "epilayer_instance" "example" {
 
 resource "epilayer_load_balancer" "example" {
   name        = "my-load-balancer-1"
-  region      = "NORD-NO-KRS-1"
   network     = "net-31e8c8f1-bca6-4ff9-af06-0f1d3624d158"
   mode        = "tcp"
   description = "This is a an example load balancer"
@@ -83,9 +81,6 @@ resource "epilayer_load_balancer" "example" {
 - `network` (String) The private network to use for the load balancer.
   - If the value of this attribute changes, the resource will be replaced.
 - `ports` (Attributes List) List of port mappings. (see [below for nested schema](#nestedatt--ports))
-- `region` (String) The region identifier. Currently, only `NORD-NO-KRS-1` is supported.
-  - If the value of this attribute changes, the resource will be replaced.
-  - The value must be one of: ["NORD-NO-KRS-1"].
 
 ### Optional
 
@@ -93,6 +88,7 @@ resource "epilayer_load_balancer" "example" {
   - Sets the default value "" if the attribute is not set.
 - `floating_ip_id` (String) The ID of an existing floating IP to use as the external IP of the load balancer.
 - `health_check` (Attributes) Health check configuration. (see [below for nested schema](#nestedatt--health_check))
+- `region` (String, Deprecated) The legacy region identifier, e.g. `NORD-NO-KRS-1`. The region follows from the provider's `endpoint`; setting it has no effect.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

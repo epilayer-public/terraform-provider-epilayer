@@ -230,13 +230,12 @@ func (r *InstanceResource) Schema(ctx context.Context, req resource.SchemaReques
 				},
 			}),
 			"region": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "The region identifier.",
-				Required:            true,
+				MarkdownDescription: regionDescription,
+				DeprecationMessage:  regionDeprecationMessage,
+				Optional:            true,
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.OneOf(sliceStringify(epilayer.AllRegions)...),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			}),
 			"security_group_ids": resourceenhancer.Attribute(ctx, schema.SetAttribute{
@@ -403,8 +402,6 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 		data.VolumeIds.ElementsAs(ctx, &volumeIds, false)
 		body.Volumes = &volumeIds
 	}
-
-	body.Region = epilayer.Region(data.Region.ValueString())
 
 	if !data.PlacementOption.IsNull() && !data.PlacementOption.IsUnknown() {
 		body.PlacementOption = pointer(data.PlacementOption.ValueString())

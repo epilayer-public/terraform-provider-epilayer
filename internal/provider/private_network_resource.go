@@ -8,13 +8,11 @@ import (
 	"github.com/epilayer-public/terraform-provider-epilayer/internal/resourceenhancer"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -93,13 +91,12 @@ func (r *PrivateNetworkResource) Schema(ctx context.Context, req resource.Schema
 				Required:            true,
 			}),
 			"region": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "The region identifier.",
-				Required:            true,
+				MarkdownDescription: regionDescription,
+				DeprecationMessage:  regionDeprecationMessage,
+				Optional:            true,
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.OneOf(sliceStringify(epilayer.AllRegions)...),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			}),
 			"status": resourceenhancer.Attribute(ctx, schema.StringAttribute{
@@ -147,7 +144,6 @@ func (r *PrivateNetworkResource) Create(ctx context.Context, req resource.Create
 	body := epilayer.CreatePrivateNetworkJSONRequestBody{}
 
 	body.Name = data.Name.ValueString()
-	body.Region = epilayer.Region(data.Region.ValueString())
 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		body.Description = pointer(data.Description.ValueString())

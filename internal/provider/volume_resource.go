@@ -73,13 +73,12 @@ func (r *VolumeResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Required:            true,
 			}),
 			"region": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "The region identifier.",
-				Required:            true,
+				MarkdownDescription: regionDescription,
+				DeprecationMessage:  regionDeprecationMessage,
+				Optional:            true,
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.OneOf(sliceStringify(epilayer.AllRegions)...),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			}),
 			"size": resourceenhancer.Attribute(ctx, schema.Int64Attribute{
@@ -142,7 +141,6 @@ func (r *VolumeResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	body.Description = pointer(data.Description.ValueString())
 	body.Name = data.Name.ValueString()
-	body.Region = epilayer.Region(data.Region.ValueString())
 	body.Size = int(data.Size.ValueInt64())
 	body.Type = pointer(epilayer.VolumeType(data.Type.ValueString()))
 

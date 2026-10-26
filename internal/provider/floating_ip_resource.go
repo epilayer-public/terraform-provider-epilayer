@@ -67,13 +67,12 @@ func (r *FloatingIPResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Computed:            true,
 			}),
 			"region": resourceenhancer.Attribute(ctx, schema.StringAttribute{
-				MarkdownDescription: "The region identifier.",
-				Required:            true,
+				MarkdownDescription: regionDescription,
+				DeprecationMessage:  regionDeprecationMessage,
+				Optional:            true,
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.OneOf(sliceStringify(epilayer.AllRegions)...),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			}),
 			"description": resourceenhancer.Attribute(ctx, schema.StringAttribute{
@@ -142,7 +141,6 @@ func (r *FloatingIPResource) Create(ctx context.Context, req resource.CreateRequ
 	body := epilayer.CreateFloatingIPJSONRequestBody{}
 
 	body.Name = data.Name.ValueString()
-	body.Region = epilayer.Region(data.Region.ValueString())
 	body.Description = pointer(data.Description.ValueString())
 
 	response, err := r.client.CreateFloatingIPWithResponse(ctx, body)
