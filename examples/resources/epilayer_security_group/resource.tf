@@ -9,3 +9,17 @@ resource "epilayer_security_group" "allow-https" {
     }
   ]
 }
+
+resource "epilayer_security_group" "keepalived" {
+  name = "keepalived"
+  rules = [
+    {
+      direction = "ingress"
+      protocol  = "112" # VRRP
+    },
+    {
+      direction = "egress"
+      protocol  = "all"
+    }
+  ]
+}

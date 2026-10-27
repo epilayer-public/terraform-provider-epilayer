@@ -58,28 +58,56 @@ func (data *SecurityGroupResourceModel) PopulateFromClientResponse(ctx context.C
 	data.Name = types.StringValue(securityGroup.Name)
 	data.Region = types.StringValue(string(securityGroup.Region))
 
+	priorRules := data.Rules
 	data.Rules = nil
-	for _, rule := range securityGroup.Rules {
-		portRangeMax := types.Int64Null()
-		portRangeMin := types.Int64Null()
-
-		if rule.PortRangeMax != nil {
-			portRangeMax = types.Int64Value(int64(*rule.PortRangeMax))
+	for i, rule := range securityGroup.Rules {
+		// The rules from the plan or the prior state, nil on import
+		var prior *SecurityGroupRuleModel
+		if i < len(priorRules) {
+			prior = &priorRules[i]
 		}
 
-		if rule.PortRangeMin != nil {
-			portRangeMin = types.Int64Value(int64(*rule.PortRangeMin))
+		// The API fills an empty port range with the whole range of the protocol: ICMP types 0 to 255
+		// for icmp, ports 0 to 65535 for everything else
+		highest := 65535
+		if rule.Protocol == "icmp" {
+			highest = 255
+		}
+		var priorMin, priorMax *types.Int64
+		if prior != nil {
+			priorMin, priorMax = &prior.PortRangeMin, &prior.PortRangeMax
+		}
+
+		// The API stores the protocol numbers 1, 6, 17 and 58 as names. Keep the number from the
+		// configuration when it means the protocol the API returned, so the state matches the
+		// configuration.
+		protocol := types.StringValue(string(rule.Protocol))
+		if prior != nil && securityGroupRuleProtocolName(prior.Protocol.ValueString()) == string(rule.Protocol) {
+			protocol = prior.Protocol
 		}
 
 		data.Rules = append(data.Rules, SecurityGroupRuleModel{
 			Direction:    types.StringValue(string(rule.Direction)),
-			PortRangeMax: portRangeMax,
-			PortRangeMin: portRangeMin,
-			Protocol:     types.StringValue(string(rule.Protocol)),
+			PortRangeMax: portFromClientResponse(rule.PortRangeMax, highest, priorMax),
+			PortRangeMin: portFromClientResponse(rule.PortRangeMin, 0, priorMin),
+			Protocol:     protocol,
 		})
 	}
 
 	data.Status = types.StringValue(string(securityGroup.Status))
 
 	return
+}
+
+// portFromClientResponse keeps a port empty when the API returns the value it fills in for an empty
+// port (fill) and the configuration left it empty, so the state matches the configuration. Without a
+// prior value (on import), the filled-in value counts as empty.
+func portFromClientResponse(port *int, fill int, prior *types.Int64) types.Int64 {
+	if port == nil {
+		return types.Int64Null()
+	}
+	if *port == fill && (prior == nil || prior.IsNull()) {
+		return types.Int64Null()
+	}
+	return types.Int64Value(int64(*port))
 }
