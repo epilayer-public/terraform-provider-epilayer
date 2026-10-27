@@ -31,12 +31,22 @@ var (
 	_ resource.ResourceWithValidateConfig   = &SecurityGroupResource{}
 )
 
-// securityGroupRuleProtocol matches a protocol name or an IP protocol number from 0 to 255. The
-// numbers 1, 6, 17 and 58 are left out: the API stores them as icmp, tcp, udp and icmp, which would
-// never match the configuration.
+// securityGroupRuleProtocol matches a protocol name or an IP protocol number from 0 to 255.
 var securityGroupRuleProtocol = regexp.MustCompile(
-	`^(all|icmp|tcp|udp|[02-57-9]|1[0-68-9]|[2-46-9][0-9]|5[0-79]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$`,
+	`^(all|icmp|tcp|udp|[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$`,
 )
+
+// securityGroupRuleProtocolNames holds the IP protocol numbers the API stores as names. ICMPv6 (58)
+// is stored as icmp, which covers both ICMP and ICMPv6.
+var securityGroupRuleProtocolNames = map[string]string{"1": "icmp", "6": "tcp", "17": "udp", "58": "icmp"}
+
+// securityGroupRuleProtocolName returns the name the API stores a protocol under.
+func securityGroupRuleProtocolName(protocol string) string {
+	if name, ok := securityGroupRuleProtocolNames[protocol]; ok {
+		return name
+	}
+	return protocol
+}
 
 func NewSecurityGroupResource() resource.Resource {
 	return &SecurityGroupResource{}
@@ -126,13 +136,13 @@ func (r *SecurityGroupResource) Schema(ctx context.Context, req resource.SchemaR
 						"protocol": resourceenhancer.Attribute(ctx, schema.StringAttribute{
 							MarkdownDescription: "The protocol of the rule: `tcp`, `udp`, `icmp`, `all` (every IP " +
 								"protocol) or an IP protocol number from 0 to 255, e.g. `112` for VRRP, `47` for GRE, " +
-								"`50` for ESP or `51` for AH.",
+								"`50` for ESP or `51` for AH. The numbers 1, 6, 17 and 58 mean the same as `icmp`, " +
+								"`tcp`, `udp` and `icmp`.",
 							Required: true,
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
 									securityGroupRuleProtocol,
-									"value must be `all`, `icmp`, `tcp`, `udp` or an IP protocol number from 0 to 255, "+
-										"using `icmp`, `tcp` and `udp` instead of 1, 6, 17 and 58",
+									"value must be `all`, `icmp`, `tcp`, `udp` or an IP protocol number from 0 to 255",
 								),
 							},
 						}),
@@ -180,8 +190,10 @@ func (r *SecurityGroupResource) ValidateConfig(ctx context.Context, req resource
 	for i, rule := range rules {
 		protocol := rule.Protocol.ValueString()
 		// Invalid protocols are reported by the protocol attribute's own validator
-		if rule.Protocol.IsUnknown() || !securityGroupRuleProtocol.MatchString(protocol) ||
-			protocol == "tcp" || protocol == "udp" || protocol == "icmp" {
+		if rule.Protocol.IsUnknown() || !securityGroupRuleProtocol.MatchString(protocol) {
+			continue
+		}
+		if name := securityGroupRuleProtocolName(protocol); name == "tcp" || name == "udp" || name == "icmp" {
 			continue
 		}
 		ports := []struct {

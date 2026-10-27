@@ -78,11 +78,19 @@ func (data *SecurityGroupResourceModel) PopulateFromClientResponse(ctx context.C
 			priorMin, priorMax = &prior.PortRangeMin, &prior.PortRangeMax
 		}
 
+		// The API stores the protocol numbers 1, 6, 17 and 58 as names. Keep the number from the
+		// configuration when it means the protocol the API returned, so the state matches the
+		// configuration.
+		protocol := types.StringValue(string(rule.Protocol))
+		if prior != nil && securityGroupRuleProtocolName(prior.Protocol.ValueString()) == string(rule.Protocol) {
+			protocol = prior.Protocol
+		}
+
 		data.Rules = append(data.Rules, SecurityGroupRuleModel{
 			Direction:    types.StringValue(string(rule.Direction)),
 			PortRangeMax: portFromClientResponse(rule.PortRangeMax, highest, priorMax),
 			PortRangeMin: portFromClientResponse(rule.PortRangeMin, 0, priorMin),
-			Protocol:     types.StringValue(string(rule.Protocol)),
+			Protocol:     protocol,
 		})
 	}
 

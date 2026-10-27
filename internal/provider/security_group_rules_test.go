@@ -9,8 +9,8 @@ import (
 )
 
 func TestSecurityGroupRuleProtocol(t *testing.T) {
-	valid := []string{"all", "icmp", "tcp", "udp", "0", "2", "5", "7", "47", "50", "51", "57", "59", "112", "132", "255"}
-	invalid := []string{"1", "6", "17", "58", "256", "-1", "007", "01", "vrrp", "TCP", "", " tcp"}
+	valid := []string{"all", "icmp", "tcp", "udp", "0", "1", "6", "9", "17", "47", "50", "51", "58", "99", "112", "199", "255"}
+	invalid := []string{"256", "300", "-1", "007", "01", "vrrp", "TCP", "", " tcp"}
 
 	for _, protocol := range valid {
 		if !securityGroupRuleProtocol.MatchString(protocol) {
@@ -21,6 +21,47 @@ func TestSecurityGroupRuleProtocol(t *testing.T) {
 		if securityGroupRuleProtocol.MatchString(protocol) {
 			t.Errorf("expected protocol %q to be invalid", protocol)
 		}
+	}
+}
+
+func TestPopulateFromClientResponseKeepsProtocolNumbers(t *testing.T) {
+	tests := []struct {
+		name          string
+		apiProtocol   string
+		priorProtocol *string
+		want          string
+	}{
+		{"6 for tcp", "tcp", pointer("6"), "6"},
+		{"17 for udp", "udp", pointer("17"), "17"},
+		{"1 for icmp", "icmp", pointer("1"), "1"},
+		{"58 for icmp", "icmp", pointer("58"), "58"},
+		{"name stays a name", "tcp", pointer("tcp"), "tcp"},
+		{"other protocol number", "112", pointer("112"), "112"},
+		{"changed outside Terraform", "tcp", pointer("17"), "tcp"},
+		{"import", "tcp", nil, "tcp"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			data := SecurityGroupResourceModel{}
+			if test.priorProtocol != nil {
+				data.Rules = []SecurityGroupRuleModel{{Protocol: types.StringValue(*test.priorProtocol)}}
+			}
+			securityGroup := epilayer.SecurityGroup{Rules: []epilayer.SecurityGroupRule{{
+				Direction:    epilayer.SecurityGroupRuleDirectionIngress,
+				Protocol:     epilayer.SecurityGroupRuleProtocol(test.apiProtocol),
+				PortRangeMin: pointer(0),
+				PortRangeMax: pointer(65535),
+			}}}
+
+			diags := data.PopulateFromClientResponse(context.Background(), &securityGroup)
+			if diags.HasError() {
+				t.Fatalf("unexpected error: %v", diags)
+			}
+			if got := data.Rules[0].Protocol.ValueString(); got != test.want {
+				t.Errorf("got protocol %q, want %q", got, test.want)
+			}
+		})
 	}
 }
 

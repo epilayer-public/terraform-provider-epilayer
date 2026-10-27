@@ -25,7 +25,6 @@ resource "epilayer_security_group" "allow-https" {
   ]
 }
 
-# Any other IP protocol is given by its number. Ports don't apply to it, so leave them empty.
 resource "epilayer_security_group" "keepalived" {
   name = "keepalived"
   rules = [
@@ -69,8 +68,8 @@ Required:
 
 - `direction` (String) The direction of the rule.
   - The value must be one of: ["egress" "ingress"].
-- `protocol` (String) The protocol of the rule: `tcp`, `udp`, `icmp`, `all` (every IP protocol) or an IP protocol number from 0 to 255, e.g. `112` for VRRP, `47` for GRE, `50` for ESP or `51` for AH.
-  - The value must be `all`, `icmp`, `tcp`, `udp` or an IP protocol number from 0 to 255, using `icmp`, `tcp` and `udp` instead of 1, 6, 17 and 58.
+- `protocol` (String) The protocol of the rule: `tcp`, `udp`, `icmp`, `all` (every IP protocol) or an IP protocol number from 0 to 255, e.g. `112` for VRRP, `47` for GRE, `50` for ESP or `51` for AH. The numbers 1, 6, 17 and 58 mean the same as `icmp`, `tcp`, `udp` and `icmp`.
+  - The value must be `all`, `icmp`, `tcp`, `udp` or an IP protocol number from 0 to 255.
 
 Optional:
 
